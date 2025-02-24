@@ -14,7 +14,6 @@
 #include <vector>
 #include <algorithmfactory.h>
 #include <essentiamath.h>
-#include <pool.h>
 
 using namespace essentia;
 using namespace essentia::standard;
@@ -77,18 +76,11 @@ public:
     
 private:
     //==============================================================================
-    Pool pool;
-    Pool aggrPool;
     
     Algorithm* rms;
     Algorithm* energy;
-    //Algorithm* spectrum;
-    //Algorithm* energyBandLow;
     
-    //vector<Real> inputFrame;
     vector<Real> essentiaBuffer;
-    //vector<Real> frame, windowedFrame;
-    //vector<Real> spectrumValues, energyBandLowValues;
     Real rmsValue, energyValue;
     
     int maxSampleSize = { 1024 };
