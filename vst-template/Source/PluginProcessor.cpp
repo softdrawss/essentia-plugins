@@ -257,8 +257,6 @@ void VsttemplateAudioProcessor::loadEssentiaBuffer(std::vector<float> buffer)
         audio_buffer.push_back(sample);
     }
     essentiaBuffer = audio_buffer;
-    //audio_buffer.clear();
-    //audio_buffer.shrink_to_fit();
 };
 
 void VsttemplateAudioProcessor::computeEssentiaAlgorithms()
