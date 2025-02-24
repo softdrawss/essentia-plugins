@@ -95,12 +95,16 @@ void VsttemplateAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    initializeEssentiaAlgorithms(int(sampleRate), samplesPerBlock);
+    DBG("sampleRate: " + juce::String(sampleRate));
+    DBG("samplesPerBlock: " + juce::String(samplesPerBlock));
 }
 
 void VsttemplateAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    cleanupEssentia();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -150,12 +154,15 @@ void VsttemplateAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-    }
+    
+    // TODO: avoid processing when the DAW is stopped or when there is no audio clip in the timeline
+    std::vector<float> audioBuffer = applyZeroPadding(buffer, maxSampleSize);
+    loadEssentiaBuffer(audioBuffer);
+    
+    computeEssentiaAlgorithms();
+    
+    DBG("rms value: " + juce::String(rmsValue) + " - " + juce::String(amp2db(rmsValue)) + "dB");
+    DBG("energy value: " + juce::String(energyValue));
 }
 
 //==============================================================================
@@ -189,3 +196,82 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new VsttemplateAudioProcessor();
 }
+
+// Essentia custom functionalities
+
+void VsttemplateAudioProcessor::initializeEssentiaAlgorithms(int sampleRate, int frameSize)
+{
+    // initialize essentia algorithms
+    essentia::init();
+    AlgorithmFactory& factory = standard::AlgorithmFactory::instance();
+    
+    // check the parameters for each algo
+    rms = factory.create("RMS");
+    // to define parameter values use <parameter_id>, <parameter_value>
+    energy = factory.create("Energy");
+
+    // connect algorithm I/Os
+    rms->input("array").set(essentiaBuffer);
+    rms->output("rms").set(rmsValue);
+    
+    energy->input("array").set(essentiaBuffer);
+    energy->output("energy").set(energyValue);
+    
+};
+
+void VsttemplateAudioProcessor::connectBufferToAlgorithms()
+{
+    rms->input("frame").set(essentiaBuffer);
+    rms->output("frame").set(rmsValue);
+    
+    energy->input("signal").set(essentiaBuffer);
+    energy->output("signal").set(energyValue);
+}
+
+std::vector<float> VsttemplateAudioProcessor::applyZeroPadding(juce::AudioBuffer<float> buffer, int maxSampleSize){
+    
+    float* start = buffer.getWritePointer(0); // get the pointer to the first sample of the first channel
+    int size = buffer.getNumSamples();
+    if (size < maxSampleSize){
+        // get an array of padded zeros
+        int padded_zeros_size =  maxSampleSize - size;
+        std::vector<float> audio_buffer_vec(start, start + size); // this will copy the data as a vector
+        // append array of padded zeros to audio_buffer
+        for(int i=0; i < padded_zeros_size; i++){
+            audio_buffer_vec.push_back(0.0f);
+        }
+        return audio_buffer_vec;
+
+    }
+    else{
+        std::vector<float> audio_buffer_vec(start, start + maxSampleSize);
+        return audio_buffer_vec;
+    }
+
+}
+
+void VsttemplateAudioProcessor::loadEssentiaBuffer(std::vector<float> buffer)
+{
+    vector<Real> audio_buffer;
+    for(auto sample : buffer){
+        audio_buffer.push_back(sample);
+    }
+    essentiaBuffer = audio_buffer;
+    //audio_buffer.clear();
+    //audio_buffer.shrink_to_fit();
+};
+
+void VsttemplateAudioProcessor::computeEssentiaAlgorithms()
+{
+    rms->compute();
+    energy->compute();
+}
+
+void VsttemplateAudioProcessor::cleanupEssentia() {
+    essentiaBuffer.clear();
+    
+    delete rms;
+    delete energy;
+    essentia::shutdown();
+}
+

@@ -66,7 +66,32 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    // Essentia custom functions
+    void initializeEssentiaAlgorithms(int sampleRate, int frameSize);
+    void connectBufferToAlgorithms();
+    
+    std::vector<float> applyZeroPadding(juce::AudioBuffer<float> buffer, int maxSampleSize);
+    void loadEssentiaBuffer(std::vector<float> buffer);
+    void computeEssentiaAlgorithms();
+    void cleanupEssentia();
+    
 private:
     //==============================================================================
+    Pool pool;
+    Pool aggrPool;
+    
+    Algorithm* rms;
+    Algorithm* energy;
+    //Algorithm* spectrum;
+    //Algorithm* energyBandLow;
+    
+    //vector<Real> inputFrame;
+    vector<Real> essentiaBuffer;
+    //vector<Real> frame, windowedFrame;
+    //vector<Real> spectrumValues, energyBandLowValues;
+    Real rmsValue, energyValue;
+    
+    int maxSampleSize = { 1024 };
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VsttemplateAudioProcessor)
 };
