@@ -40,3 +40,21 @@ bash scripts/build-essentia-osx.sh
 2. Compile Essentia library running `./scripts/build-essentia-osx.sh`
 3. Run the *vst-template* project to ensure all is working fine.
 4. Copy the *vst-template* folder and rename files and classes.
+
+
+```bash
+ESS_DIR=$(pwd)
+# python3 waf configure --build-static --static-dependencies --lightweight= --out=/Users/fernando/dev/upf/essentia-plugins/essentia-vst/essentia/build/ 
+python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/
+python3 waf -v
+python3 waf install
+```
+
+```bash
+ESS_DIR=$(pwd)
+python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/ --prefix=$ESS_DIR/build/install
+python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/ --prefix=$ESS_DIR/build/install --with-tensorflow
+python3 waf -v
+python3 waf install
+```
+

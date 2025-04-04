@@ -74,6 +74,9 @@ public:
     void computeEssentiaAlgorithms();
     void cleanupEssentia();
     
+    float getRMS() const { return (float)amp2db(rmsValue); }
+    float getEnergy() const { return (float)energyValue; }
+    
 private:
     //==============================================================================
     

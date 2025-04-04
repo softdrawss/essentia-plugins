@@ -26,6 +26,7 @@ VsttemplateAudioProcessor::VsttemplateAudioProcessor()
 
 VsttemplateAudioProcessor::~VsttemplateAudioProcessor()
 {
+    releaseResources();
 }
 
 //==============================================================================
@@ -267,9 +268,8 @@ void VsttemplateAudioProcessor::computeEssentiaAlgorithms()
 
 void VsttemplateAudioProcessor::cleanupEssentia() {
     essentiaBuffer.clear();
-    
-    delete rms;
-    delete energy;
     essentia::shutdown();
+    //delete rms;
+    //delete energy;
 }
 

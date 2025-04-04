@@ -14,7 +14,7 @@
 //==============================================================================
 /**
 */
-class VsttemplateAudioProcessorEditor  : public juce::AudioProcessorEditor
+class VsttemplateAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
     VsttemplateAudioProcessorEditor (VsttemplateAudioProcessor&);
@@ -25,6 +25,7 @@ public:
     void resized() override;
 
 private:
+    void timerCallback() override;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     VsttemplateAudioProcessor& audioProcessor;

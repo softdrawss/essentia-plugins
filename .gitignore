@@ -178,3 +178,4 @@ env/
 build/
 *.DS_Store
 vst-template/Builds/
+vst-template/JuceLibraryCode/
