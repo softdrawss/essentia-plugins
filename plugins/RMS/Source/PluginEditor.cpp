@@ -35,7 +35,7 @@ void RMSAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
     g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
+    g.setFont (25.0f);
     g.drawFittedText ("Essentia version:" + juce::String(essentia::version), getLocalBounds(), juce::Justification::centredTop, 1);
 
     g.setFont (35.0f);
