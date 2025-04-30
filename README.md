@@ -53,7 +53,7 @@ python3 waf install
 ```bash
 ESS_DIR=$(pwd)
 python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/ --prefix=$ESS_DIR/build/install
-python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/ --prefix=$ESS_DIR/build/install --with-tensorflow
+# python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/ --prefix=$ESS_DIR/build/install --with-tensorflow
 python3 waf -v
 python3 waf install
 ```
