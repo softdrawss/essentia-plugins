@@ -42,7 +42,7 @@ else()
     set(PLUGIN_INSTALL_DIR "")  # no copy
 endif()
 
-add_subdirectory(plugins/energy)
+add_subdirectory(plugins/Energy)
 
 # enable_testing()
 # add_subdirectory(test)
