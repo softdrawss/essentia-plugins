@@ -4,6 +4,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 juce_add_plugin(
     ${PROJECT_NAME}
     COMPANY_NAME "Music Technology Group"
+    BUNDLE_ID "com.MusicTechnologyGroup.EnergyPlugin"
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
