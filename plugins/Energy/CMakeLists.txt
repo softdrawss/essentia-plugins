@@ -16,10 +16,18 @@ juce_add_plugin(
     PRODUCT_NAME              "Energy"
 )
 
+# point sources to src/
 target_sources(${PROJECT_NAME}
     PRIVATE
-        PluginEditor.cpp
-        PluginProcessor.cpp
+        src/PluginEditor.cpp
+        src/PluginProcessor.cpp
+)
+
+# add the public include directory
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
 target_compile_definitions(
