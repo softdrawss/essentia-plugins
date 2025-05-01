@@ -65,6 +65,7 @@ else()
 endif()
 
 add_subdirectory(plugins/Energy)
+add_subdirectory(plugins/RMS)
 
 # enable_testing()
 # add_subdirectory(test)
