@@ -30,6 +30,28 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 find_package(JUCE CONFIG REQUIRED)
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_path(ESSENTIA_INCLUDE_DIR
+    NAMES essentia/algorithm.h
+    HINTS "${ESSENTIA_ROOT}/include"
+)
+find_library(ESSENTIA_LIBRARY
+    NAMES essentia
+    HINTS "${ESSENTIA_ROOT}/lib"
+)
+
+if (NOT ESSENTIA_INCLUDE_DIR OR NOT ESSENTIA_LIBRARY)
+    message(FATAL_ERROR
+      "Could not locate Essentia headers or library. "
+      "Please set ESSENTIA_ROOT to your Essentia install prefix.")
+endif()
+
+# Create an IMPORTED target for cleaner linking
+add_library(essentia STATIC IMPORTED GLOBAL)
+set_target_properties(essentia PROPERTIES
+  IMPORTED_LOCATION "${ESSENTIA_LIBRARY}"
+  INTERFACE_INCLUDE_DIRECTORIES "${ESSENTIA_INCLUDE_DIR}"
+)
 
 # choose default install location
 if(CUSTOM_PLUGIN_INSTALL_DIR)
