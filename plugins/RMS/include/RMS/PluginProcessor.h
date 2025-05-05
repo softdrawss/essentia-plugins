@@ -1,9 +1,9 @@
 #pragma once
 
-#include <juce_audio_processors/juce_audio_processors.h>
-#include <vector>
 #include <essentia/algorithmfactory.h>
 #include <essentia/essentiamath.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <vector>
 
 //==============================================================================
 class AudioPluginAudioProcessor final : public juce::AudioProcessor
@@ -14,12 +14,12 @@ public:
     ~AudioPluginAudioProcessor() override;
 
     //==============================================================================
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
-    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
-    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     using AudioProcessor::processBlock;
 
     //==============================================================================
@@ -37,31 +37,28 @@ public:
     //==============================================================================
     int getNumPrograms() override;
     int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const juce::String getProgramName (int index) override;
-    void changeProgramName (int index, const juce::String& newName) override;
+    void setCurrentProgram(int index) override;
+    const juce::String getProgramName(int index) override;
+    void changeProgramName(int index, const juce::String& newName) override;
 
     //==============================================================================
-    void getStateInformation (juce::MemoryBlock& destData) override;
-    void setStateInformation (const void* data, int sizeInBytes) override;
+    void getStateInformation(juce::MemoryBlock& destData) override;
+    void setStateInformation(const void* data, int sizeInBytes) override;
 
-    // Essentia custom functions
-    void initializeEssentiaAlgorithms(int sampleRate, int frameSize);
-    void connectBufferToAlgorithms();
-    std::vector<float> applyZeroPadding(juce::AudioBuffer<float>& buffer, int maxSampleSize);
-    
-    void loadEssentiaBuffer(std::vector<float> buffer);
-    void computeEssentiaAlgorithms();
-    void cleanupEssentia();
-    
-    float getRMS() const { return (float)essentia::amp2db(rmsValue); }
+    // --- quick access to the most recent RMS in both units ----------
+    float getRMSLinear() const
+    {
+        return rmsValue;
+    }
+    float getRMSdB() const
+    {
+        return static_cast<float>(essentia::amp2db(rmsValue));
+    }
 
 private:
-    essentia::standard::Algorithm* rms;
-    essentia::Real rmsValue;
+    essentia::standard::Algorithm* rms = nullptr;
     std::vector<essentia::Real> essentiaBuffer;
-    
-    int maxSampleSize {1024};
+    essentia::Real rmsValue = 0.f;
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };
