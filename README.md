@@ -1,104 +1,117 @@
-# Essentia Plugins
+# Essentia‑Plugins
 
-This repository contains a collection of VST plugins built using the Essentia library. The plugins are designed to be used in digital audio workstations (DAWs) and provide various audio analysis, audio effects options.
-The plugins are built using the JUCE framework, which provides a powerful and flexible platform for developing audio applications.
+Collection of VST3 audio‑analysis and utility effects built with the **[Essentia](https://essentia.upf.edu/)** DSP library and **[JUCE](https://juce.com/)**.  
+The repository ships ready‑to‑use plugins **and** templates so you can bootstrap your own Essentia‑powered processors in minutes.
 
-In addition, we include plugin templates for building VST3 plugins using the Essentia library using CMake and Projucer.
+## Table of Contents
+1. [Features](#features)  
+2. [Requirements](#requirements)  
+3. [Quick Start](#quick-start)  
+4. [Building Essentia](#building-essentia)  
+5. [Plugin Templates](#plugin-templates)  
+6. [Available Plugins](#available-plugins)  
+7. [Contributing](#contributing)  
+8. [License](#license)
 
-## Prerequisites
-- CMake
-- JUCE
-- Essentia
-- Python
+---
 
-# Worflow
+## Features
+- **Pre‑built analysis effects**: RMS, Energy, Audio2MIDI and more  
+- **Cross‑platform** JUCE + Essentia stack (macOS, Windows 10+, Linux)  
+- **CMake *or* Projucer** build flows  
+- **Self‑contained static Essentia** build—no runtime dependencies  
+- **Starter templates** to create new plugins quickly
 
-The workflow for building the plugins is as follows:
-1. Clone the repository with the submodules
+---
+
+## Requirements
+| Tool          | Version tested | Notes                                    |
+|---------------|---------------:|------------------------------------------|
+| CMake         | >= 3.22         | Core build system                        |
+| Python        | >= 3.8          | Required by Essentia’s waf script        |
+| JUCE          | 8.x            | Modules only – no licence needed locally |
+| Essentia      | `1f486843`        | Built as *static* library                |
+| GoogleTest    | *optional*     | Unit‑tests for plugins                   |
+
+---
+
+## Quick Start
+
 ```bash
+# 1. Clone with submodules
 git clone --recurse-submodules https://github.com/MTG/essentia-plugins.git
+cd essentia-plugins
+
+# 2. Build third‑party libraries (JUCE, GoogleTest, ...)
+#    (drives the external/ super‑build so you don’t have to call CMake yourself)
+bash scripts/build-external.sh      # build_external/
+
+# 3. Build Essentia (static) with waf
+bash scripts/build-essentia-osx.sh  # or build-essentia-linux.sh / .bat
+
+# 4. Build every plugin
+mkdir build && cd build
+cmake .. -DCMAKE_PREFIX_PATH="${PWD}/../build_external/install" -DCOPY_PLUGIN_AFTER_BUILD=ON
+cmake --build . --parallel
 ```
-   If already cloned without --recurse-submodule
-```bash
-cd essentia-plgins
-git submodule update --init --recursive
-```
-2. Install the dependencies
-   - JUCE
-   - Essentia (as a static library)
-   - Google Test
-3. Build the plugins
 
-# Building essentia
+> If `COPY_PLUGIN_AFTER_BUILD` is `ON`, the resulting `.vst3` is copied automatically to the user plugin folder  
+> (e.g. `~/Library/Audio/Plug‑Ins/VST3` on macOS).
 
-Details on how to build Essentia can be found in the [Essentia documentation](https://essentia.upf.edu/documentation/). The following instructions are a summary of the official documentation.
+### Custom CMake options
 
-There are two ways to build Essentia: using CMake or waf build system. As of now essentia has no official CMake support.
+| Variable                    | Default | Description                                                               |
+|-----------------------------|---------|---------------------------------------------------------------------------|
+| `COPY_PLUGIN_AFTER_BUILD`   | `OFF`   | Automatically install the plugin after every successful build             |
+| `CUSTOM_PLUGIN_INSTALL_DIR` | *(none)*| Override the destination path used when copying the plugin                |
+| `PLUGIN_FORMATS`            | `"VST3"` | Semicolon‑list of JUCE plugin formats (e.g. `"VST3;AU"`)               |
 
-The plugins were tested using the official Essentia build system (waf) as it contains all its dependencies in the static library. The CMake build system is still under development and may not work as expected when exporting the plugins to a different computer.
+---
 
-#### Essentia with CMake
-There are some attempts to migrate Essentia to CMake: 
-https://github.com/wo80/essentia/tree/cmake
-If you want to use the CMake build system, you can add a new `ExternalProject_Add` to the exteral/CMakeLists.txt with the repository that has the CMake support. 
+## Building Essentia
 
+Essentia’s official CMake support is *in progress*; therefore the recommended path is its native **waf** build, which bundles all dependencies into one static library:
 
-
-## Build Dependencies
-
-JUCE and Google test (Cmake)
-```bash
-mkdir build_external && cd build_external
-cmake ../external && cmake --build . -- -j$(nproc)
-```
-For essentia:
 ```bash
 cd external/essentia
-python3 waf configure --build-static --static-dependencies --lightweight= --out=${PWD}/build --prefix=${PWD}../../../build_external/install
-python3 waf build --progress
-python3 waf install --progress
+python3 waf configure --build-static --static-dependencies \
+  --lightweight --out=build \
+  --prefix="$(pwd)/../../build_external/install"
+python3 waf build -j$(nproc)
+python3 waf install
 ```
 
-## Dependecies with bash scripts
+> **Heads‑up:** when you run `cmake`, point the search path to your Essentia install:  
+> `-DCMAKE_PREFIX_PATH=$(pwd)/../../build_external/install` **or**  
+> `-DESSENTIA_ROOT=$(pwd)/../../build_external/install`.
 
-For all cmake dependencies:
-```bash
-bash scripts/build-external.sh
-```
-For essentia as static library using wscript:
-```bash
-bash scripts/build-essentia-osx.sh
-```
+---
 
-# Building the plugins
-The plugins are built using CMake. The build process is as follows:
+## Plugin Templates
 
-All plgins:
-```bash
-PATH_INSTALL_EXTERNALS="${PWD}/build_external/install"
-PATH_INSTALL_EIGEN3="path/to/include/eigen3"
-mkdir build && cd build
-cmake .. \
-   -DCMAKE_PREFIX_PATH="${PATH_INSTALL_EXTERNALS};${PATH_INSTALL_EIGEN3}" \
-   -DCOPY_PLUGIN_AFTER_BUILD:STRING=ON 
-cmake --build .
-```
+| Path                                   | Build system | What you get                                             |
+|----------------------------------------|--------------|----------------------------------------------------------|
+| `templates/cmake`                      | CMake        | Minimal JUCE + Essentia VST3 with unit tests             |
+| `templates/projucer`                   | Projucer     | Same template exported as a `.jucer` project             |
 
+Copy one of the folders, rename it, then adapt `CMakeLists.txt` (or the Projucer settings) to your new product name.
 
-# Plugin templates
-There are two plugin templates available in the `templates` folder:
-- `cmake/plugin_template`: A template for building a VST3 plugin using CMake.
-- `projucer/plugin_template`: A template for building a VST3 plugin using Projucer.
+---
 
-Just copy the folder and rename it to your plugin name. Then, open the CMakeLists.txt or Projucer file and modify the plugin name and other settings as needed.
+## Available Plugins
 
-# Plugins
-The currently available plugins are:
+| Plugin name    | Description                                        | Build system |
+|----------------|----------------------------------------------------|--------------|
+| **RMS**        | Sample‑accurate root‑mean‑square meter             | CMake        |
+| **Energy**     | Frame‑based energy estimator                       | CMake        |
+| **RMS_projucer** | Same as **RMS**, built with Projucer             | Projucer     |
+| **Audio2Midi** | Monophonic pitch tracker that outputs MIDI events  | Projucer     |
 
-| Plugin Name | Description | Build System | Dependencies |
-| ----------- | ----------- | ---------- | ------------ |
-| [RMS](plugins/RMS) | Computes the RMS of the input signal. | CMake | Essentia |
-| [Energy](plugins/Energy) | Computes the energy of the input signal. | CMake | Essentia |
-| [RMS_projucer](plugins/RMS_projucer) | Computes the RMS of the input signal. | Projucer | Essentia |
-| [Audio2Midi](plugins/Audio2Midi) | Converts audio to MIDI. | Projucer | Essentia |
+---
 
+## Contributing
+Pull requests and issue reports are welcome!  
+Please read the [CONTRIBUTING](CONTRIBUTING.md) guide before submitting code.
+
+## License
+TBD
