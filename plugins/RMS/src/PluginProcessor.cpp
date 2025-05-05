@@ -83,18 +83,87 @@ void AudioPluginAudioProcessor::changeProgramName (int index, const juce::String
     juce::ignoreUnused (index, newName);
 }
 
+void AudioPluginAudioProcessor::initializeEssentiaAlgorithms(int sampleRate, int frameSize)
+{
+    juce::ignoreUnused(sampleRate, frameSize);
+    essentia::init();
+    
+    essentia::standard::AlgorithmFactory& factory = essentia::standard::AlgorithmFactory::instance();
+    
+    // check the parameters for each algo
+    rms = factory.create("RMS");
+
+    // connect algorithm I/Os
+    rms->input("array").set(essentiaBuffer);
+    rms->output("rms").set(rmsValue);
+}
+
+void AudioPluginAudioProcessor::connectBufferToAlgorithms()
+{
+    rms->input("frame").set(essentiaBuffer);
+    rms->output("frame").set(rmsValue);
+}
+
+std::vector<float> AudioPluginAudioProcessor::applyZeroPadding(juce::AudioBuffer<float>& buffer, int newMaxSampleSize)
+{
+    
+    float* start = buffer.getWritePointer(0); // get the pointer to the first sample of the first channel
+    int size = buffer.getNumSamples();
+    if (size < newMaxSampleSize){
+        // get an array of padded zeros
+        int padded_zeros_size =  newMaxSampleSize - size;
+        std::vector<float> audio_buffer_vec(start, start + size); // this will copy the data as a vector
+        // append array of padded zeros to audio_buffer
+        for(int i=0; i < padded_zeros_size; i++){
+            audio_buffer_vec.push_back(0.0f);
+        }
+        return audio_buffer_vec;
+
+    }
+    else{
+        std::vector<float> audio_buffer_vec(start, start + newMaxSampleSize);
+        return audio_buffer_vec;
+    }
+}
+
+void AudioPluginAudioProcessor::loadEssentiaBuffer(std::vector<float> buffer)
+{
+    std::vector<essentia::Real> audio_buffer;
+    for(auto sample : buffer){
+        audio_buffer.push_back(sample);
+    }
+    essentiaBuffer = audio_buffer;
+}
+
+void AudioPluginAudioProcessor::computeEssentiaAlgorithms()
+{
+    rms->compute();
+}
+
+void AudioPluginAudioProcessor::cleanupEssentia()
+{
+    // delete the algorithms
+    delete rms;
+    rms = nullptr;
+    // shutdown essentia
+    essentia::shutdown();
+    // clear the buffer
+    essentiaBuffer.clear();
+}
+
 //==============================================================================
 void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
+    initializeEssentiaAlgorithms((int)sampleRate, samplesPerBlock);
 }
 
 void AudioPluginAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    cleanupEssentia();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -125,32 +194,9 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                               juce::MidiBuffer& midiMessages)
 {
     juce::ignoreUnused (midiMessages);
-
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channelData);
-        // ..do something to the data...
-    }
+    std::vector<float> audioBuffer = applyZeroPadding(buffer, maxSampleSize);
+    loadEssentiaBuffer(audioBuffer);
+    computeEssentiaAlgorithms();
 }
 
 //==============================================================================

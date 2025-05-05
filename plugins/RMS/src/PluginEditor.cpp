@@ -9,10 +9,16 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (400, 300);
+    startTimerHz(30);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 {
+}
+
+void AudioPluginAudioProcessorEditor::timerCallback()
+{
+    repaint();
 }
 
 //==============================================================================
@@ -22,8 +28,20 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
     g.setColour (juce::Colours::white);
+    g.setFont (25.0f);
+    g.drawFittedText ("Essentia:" + juce::String(essentia::version), getLocalBounds(), juce::Justification::centredTop, 1);
+
+    g.setFont (35.0f);
+
+    float rms = processorRef.getRMS();
+
+    juce::String info;
+    info << "RMS: " << juce::String(rms, 3) << "\n";
+
+    g.drawFittedText(info, getLocalBounds().reduced(10), juce::Justification::centred, 2);
     g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    g.drawFittedText ("plugins/RMS", getLocalBounds(), juce::Justification::centredBottom, 1);
+
 }
 
 void AudioPluginAudioProcessorEditor::resized()

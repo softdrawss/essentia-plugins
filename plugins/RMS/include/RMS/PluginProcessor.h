@@ -1,6 +1,9 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <vector>
+#include <essentia/algorithmfactory.h>
+#include <essentia/essentiamath.h>
 
 //==============================================================================
 class AudioPluginAudioProcessor final : public juce::AudioProcessor
@@ -42,7 +45,23 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    // Essentia custom functions
+    void initializeEssentiaAlgorithms(int sampleRate, int frameSize);
+    void connectBufferToAlgorithms();
+    std::vector<float> applyZeroPadding(juce::AudioBuffer<float>& buffer, int maxSampleSize);
+    
+    void loadEssentiaBuffer(std::vector<float> buffer);
+    void computeEssentiaAlgorithms();
+    void cleanupEssentia();
+    
+    float getRMS() const { return (float)essentia::amp2db(rmsValue); }
+
 private:
+    essentia::standard::Algorithm* rms;
+    essentia::Real rmsValue;
+    std::vector<essentia::Real> essentiaBuffer;
+    
+    int maxSampleSize {1024};
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
 };
