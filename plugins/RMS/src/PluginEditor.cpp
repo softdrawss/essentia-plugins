@@ -4,8 +4,7 @@
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor& p)
-: AudioProcessorEditor(&p)
-, processorRef(p)
+    : AudioProcessorEditor(&p), processorRef(p)
 {
     juce::ignoreUnused(processorRef);
     // Make sure that before the constructor has finished, you've set the
@@ -14,9 +13,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     startTimerHz(30);
 }
 
-AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
-{
-}
+AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
 
 void AudioPluginAudioProcessorEditor::timerCallback()
 {

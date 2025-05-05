@@ -17,9 +17,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 }
 // clang-format on
 
-AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
-{
-}
+AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
 
 //==============================================================================
 const juce::String AudioPluginAudioProcessor::getName() const
@@ -135,7 +133,7 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(const BusesLayout& layout
 }
 
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
-                                             juce::MidiBuffer& midiMessages)
+                                             juce::MidiBuffer&         midiMessages)
 {
     juce::ignoreUnused(midiMessages);
     // mono RMS for now
