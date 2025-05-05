@@ -1,60 +1,104 @@
-# essentia-vst
+# Essentia Plugins
 
-This is a repository to show how to build VST plugins linking [JUCE](https://juce.com/) and essentia library via [ProJucer](https://docs.juce.com/master/tutorial_new_projucer_project.html). It contains a VST template as example and also stores VSTs developed here at MTG.
+This repository contains a collection of VST plugins built using the Essentia library. The plugins are designed to be used in digital audio workstations (DAWs) and provide various audio analysis, audio effects options.
+The plugins are built using the JUCE framework, which provides a powerful and flexible platform for developing audio applications.
 
-## Table of Content
+In addition, we include plugin templates for building VST3 plugins using the Essentia library using CMake and Projucer.
 
-## Installation
+## Prerequisites
+- CMake
+- JUCE
+- Essentia
+- Python
 
-1. Clone our repository in the work directory
+# Worflow
 
+The workflow for building the plugins is as follows:
+1. Clone the repository with the submodules
 ```bash
-git clone https://github.com/MTG/essentia-vst
+git clone --recurse-submodules https://github.com/MTG/essentia-plugins.git
+```
+   If already cloned without --recurse-submodule
+```bash
+cd essentia-plgins
+git submodule update --init --recursive
+```
+2. Install the dependencies
+   - JUCE
+   - Essentia (as a static library)
+   - Google Test
+3. Build the plugins
+
+# Building essentia
+
+Details on how to build Essentia can be found in the [Essentia documentation](https://essentia.upf.edu/documentation/). The following instructions are a summary of the official documentation.
+
+There are two ways to build Essentia: using CMake or waf build system. As of now essentia has no official CMake support.
+
+The plugins were tested using the official Essentia build system (waf) as it contains all its dependencies in the static library. The CMake build system is still under development and may not work as expected when exporting the plugins to a different computer.
+
+#### Essentia with CMake
+There are some attempts to migrate Essentia to CMake: 
+https://github.com/wo80/essentia/tree/cmake
+If you want to use the CMake build system, you can add a new `ExternalProject_Add` to the exteral/CMakeLists.txt with the repository that has the CMake support. 
+
+
+
+## Build Dependencies
+
+JUCE and Google test (Cmake)
+```bash
+mkdir build_external && cd build_external
+cmake ../external && cmake --build . -- -j$(nproc)
+```
+For essentia:
+```bash
+cd external/essentia
+python3 waf configure --build-static --static-dependencies --lightweight= --out=${PWD}/build --prefix=${PWD}../../../build_external/install
+python3 waf build --progress
+python3 waf install --progress
 ```
 
-2. Clone essentia repository in the work director and install dependencies
+## Dependecies with bash scripts
 
-   1. Check here for more details: <https://essentia.upf.edu/installing.html#installing-dependencies-on-macos>
-
+For all cmake dependencies:
 ```bash
-git clone https://github.com/MTG/essentia
+bash scripts/build-external.sh
 ```
-
-3. Define `ESSENTIA_DIR` in `.env` (if needed)
-4. Compile essentia in a static library (libessentia)
-
+For essentia as static library using wscript:
 ```bash
 bash scripts/build-essentia-osx.sh
 ```
 
-5. Download JUCE and Projucer package from <https://juce.com/download/>
-   1. The default `JUCE_DIR` in MacOS is `/Users/$USER/dev/JUCE`
-6. Redefine the `JUCE_DIR` in `.env` file (if needed)
-7. Run the *vst-template* project with Projucer to test all is okay
-8. Copy the *vst-template* folder and rename the folder and the Projucer project.
-9. Fix the issues after replacing classnames?
+# Building the plugins
+The plugins are built using CMake. The build process is as follows:
 
-## Usage
-
-1. Install Essentia dependencies on your system.
-2. Compile Essentia library running `./scripts/build-essentia-osx.sh`
-3. Run the *vst-template* project to ensure all is working fine.
-4. Copy the *vst-template* folder and rename files and classes.
-
-
+All plgins:
 ```bash
-ESS_DIR=$(pwd)
-# python3 waf configure --build-static --static-dependencies --lightweight= --out=/Users/fernando/dev/upf/essentia-plugins/essentia-vst/essentia/build/ 
-python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/
-python3 waf -v
-python3 waf install
+PATH_INSTALL_EXTERNALS="${PWD}/build_external/install"
+PATH_INSTALL_EIGEN3="path/to/include/eigen3"
+mkdir build && cd build
+cmake .. \
+   -DCMAKE_PREFIX_PATH="${PATH_INSTALL_EXTERNALS};${PATH_INSTALL_EIGEN3}" \
+   -DCOPY_PLUGIN_AFTER_BUILD:STRING=ON 
+cmake --build .
 ```
 
-```bash
-ESS_DIR=$(pwd)
-python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/ --prefix=$ESS_DIR/build/install
-# python3 waf configure --build-static --static-dependencies --lightweight= --out=$ESS_DIR/build/ --prefix=$ESS_DIR/build/install --with-tensorflow
-python3 waf -v
-python3 waf install
-```
+
+# Plugin templates
+There are two plugin templates available in the `templates` folder:
+- `cmake/plugin_template`: A template for building a VST3 plugin using CMake.
+- `projucer/plugin_template`: A template for building a VST3 plugin using Projucer.
+
+Just copy the folder and rename it to your plugin name. Then, open the CMakeLists.txt or Projucer file and modify the plugin name and other settings as needed.
+
+# Plugins
+The currently available plugins are:
+
+| Plugin Name | Description | Build System | Dependencies |
+| ----------- | ----------- | ---------- | ------------ |
+| [RMS](plugins/RMS) | Computes the RMS of the input signal. | CMake | Essentia |
+| [Energy](plugins/Energy) | Computes the energy of the input signal. | CMake | Essentia |
+| [RMS_projucer](plugins/RMS_projucer) | Computes the RMS of the input signal. | Projucer | Essentia |
+| [Audio2Midi](plugins/Audio2Midi) | Converts audio to MIDI. | Projucer | Essentia |
 
