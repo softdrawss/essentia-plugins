@@ -30,17 +30,15 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:include>
 )
 
-target_compile_definitions(
-    ${PROJECT_NAME}
-    PUBLIC
-        JUCE_WEB_BROWSER=0
-        JUCE_USE_CURL=0
-        JUCE_VST3_CAN_REPLACE_VST2=0
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ${ESSENTIA_INCLUDE_DIR}
 )
 
-target_link_libraries(
-    ${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}
     PRIVATE
+        essentia
+        Eigen3::Eigen
         juce::juce_audio_processors
         juce::juce_audio_utils
         juce::juce_dsp
