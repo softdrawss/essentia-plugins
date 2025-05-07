@@ -8,10 +8,11 @@ The repository ships ready‑to‑use plugins **and** templates so you can boots
 2. [Requirements](#requirements)  
 3. [Quick Start](#quick-start)  
 4. [Building Essentia](#building-essentia)  
-5. [Plugin Templates](#plugin-templates)  
-6. [Available Plugins](#available-plugins)  
-7. [Contributing](#contributing)  
-8. [License](#license)
+5. [Developer Guide](#developer-guide)  
+6. [Plugin Templates](#plugin-templates)  
+7. [Available Plugins](#available-plugins)  
+8. [Contributing](#contributing)  
+9. [License](#license)
 
 ---
 
@@ -87,6 +88,20 @@ python3 waf install
 
 ---
 
+## Developer Guide
+
+For detailed technical information on integrating Essentia algorithms into your JUCE plugins, refer to our comprehensive [Developer Guide](DeveloperGuide.md). The guide includes:
+
+- Step-by-step integration instructions
+- Code templates for quick implementation
+- Port names and buffer shapes for common algorithms
+- Performance tips and best practices
+- Examples of real-time audio analysis implementation
+
+This guide is essential for developers wanting to create their own Essentia-powered audio plugins beyond using the templates.
+
+---
+
 ## Plugin Templates
 
 | Path                                   | Build system | What you get                                             |
@@ -95,6 +110,8 @@ python3 waf install
 | `templates/projucer`                   | Projucer     | Same template exported as a `.jucer` project             |
 
 Copy one of the folders, rename it, then adapt `CMakeLists.txt` (or the Projucer settings) to your new product name.
+
+See the [Developer Guide](DeveloperGuide.md) for detailed instructions on implementing Essentia algorithms in your plugins.
 
 ---
 
