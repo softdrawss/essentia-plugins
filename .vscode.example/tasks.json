@@ -1,0 +1,64 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-all",
+            "type": "shell",
+            "command": "/opt/homebrew/bin/cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build_Debug",
+                "--config",
+                "Debug",
+                "--target",
+                "all",
+                "-j",
+                "12"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "build-vst3",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build_${input:buildType}",
+                "--config",
+                "${input:buildType}",
+                "--target",
+                "${input:pluginTarget}",
+                "-j",
+                "12"
+            ],
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "buildType",
+            "type": "pickString",
+            "description": "Build type",
+            "default": "Debug",
+            "options": ["Debug", "Release"]
+        },
+        {
+            "id": "pluginTarget",
+            "type": "pickString",
+            "description": "Plugin target to build",
+            "default": "RMSPlugin_VST3",
+            "options": ["RMSPlugin_VST3", "EnergyPlugin_VST3"]
+        }
+    ]
+}

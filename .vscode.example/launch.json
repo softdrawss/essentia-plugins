@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "REAPER",
+            "type": "lldb",
+            "request": "launch",
+            "program": "/Applications/REAPER.app/Contents/MacOS/REAPER",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "preLaunchTask": "build-vst3",  // or "build-all"
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}
