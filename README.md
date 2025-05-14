@@ -76,7 +76,7 @@ Essentia’s official CMake support is *in progress*; therefore the recommended 
 ```bash
 cd external/essentia
 python3 waf configure --build-static --static-dependencies \
-  --lightweight --out=build \
+  --lightweight= --out=build \
   --prefix="$(pwd)/../../build_external/install"
 python3 waf build -j$(nproc)
 python3 waf install
