@@ -2,6 +2,30 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "build-external-dependencies",
+            "type": "shell",
+            "command": "sh ${workspaceFolder}/scripts/build-external.sh",
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "detail": "Build external dependencies (JUCE, GoogleTest)"
+        },
+        {
+            "label": "build-essentia",
+            "type": "shell",
+            "command": "sh ${workspaceFolder}/scripts/build-essentia-${input:platform}.sh",
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "detail": "Build Essentia library using waf"
+        },
+        {
             "label": "build-all",
             "type": "shell",
             "command": "/opt/homebrew/bin/cmake",
