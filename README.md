@@ -69,6 +69,36 @@ cmake --build . --parallel
 
 ---
 
+## External Dependencies Build Process
+
+The `build-external.sh` script handles the building of all external dependencies required by the project (JUCE, GoogleTest). Here's what it does:
+
+```bash
+# Create build directory at project root
+mkdir -p build_external
+cd build_external
+
+# Auto-detect number of CPU cores for faster parallel build
+if [[ "$(uname)" == "Darwin" ]]; then
+  NUM_CORES=$(sysctl -n hw.ncpu)  # macOS
+else
+  NUM_CORES=$(nproc)              # Linux
+fi
+
+# Configure external CMake project 
+cmake ../external
+
+# Build all dependencies in parallel
+cmake --build . -- -j"$NUM_CORES"
+```
+
+This process creates the `build_external/install` directory that contains:
+- JUCE modules and CMake integration
+- GoogleTest library for unit testing
+- Installation target for the Essentia library (populated in the next step)
+
+---
+
 ## Building Essentia
 
 Essentia’s official CMake support is *in progress*; therefore the recommended path is its native **waf** build, which bundles all dependencies into one static library:
