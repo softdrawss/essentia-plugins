@@ -14,8 +14,7 @@
         // "CUSTOM_PLUGIN_INSTALL_DIR": "/Users/${env:USER}/Library/Audio/Plug-Ins/Components"
     },
     "search.exclude": {
-        "build_Debug": true,
-        "build_external": true,
+        "build_*": true,
         "external": true,
     },
     "cmake.sourceDirectory": "${workspaceFolder}",
