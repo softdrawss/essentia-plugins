@@ -56,7 +56,7 @@ run python3 waf configure \
   --build-static \
   --static-dependencies \
   --lightweight= \
-  --fft=ACCELERATE \
+  --fft=KISS \
   --include-algos=LowPass,IIR,Audio2Pitch,Pitch2Midi,FrameBuffer,Windowing,Spectrum,FFT,Magnitude,PitchYin,PeakDetection,PitchYinFFT,RMS,CartesianToPolar,Audio2Midi \
   --out="$BUILD_PATH" \
   --prefix="$INSTALL_PATH"
