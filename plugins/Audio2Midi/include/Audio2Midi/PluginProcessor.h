@@ -44,14 +44,22 @@ public:
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    float getEnergyLinear() const { return energyValue; }
-
-    float getEnergydB() const { return essentia::lin2db(energyValue); }
-
 private:
-    essentia::standard::Algorithm* energyAlg{nullptr};
-    std::vector<essentia::Real>    inBuffer;
-    essentia::Real                 energyValue{0.f};
+    essentia::standard::Algorithm* audio2midi{nullptr};
+    // std::vector<essentia::Real>    inBuffer;
+    // essentia::Real                 energyValue{0.f};
+
+    // audio2midi inputs and outputs
+    std::vector<essentia::Real> inputFrame;
+    essentia::Real              rmsValue, pitch, rms;
+    std::vector<std::string>    messageType;
+    std::vector<essentia::Real> midiNoteNumber;
+    std::vector<essentia::Real> timeCompensation;
+
+    // timestamp
+    juce::AudioPlayHead::CurrentPositionInfo lastPosInfo;
+
+    double currentTime, msPerSample, mSampleRate;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };

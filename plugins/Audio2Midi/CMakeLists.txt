@@ -7,7 +7,7 @@ juce_add_plugin(
     BUNDLE_ID                 "com.MusicTechnologyGroup.Audio2MidiPlugin"
     IS_SYNTH                  FALSE
     NEEDS_MIDI_INPUT          FALSE
-    NEEDS_MIDI_OUTPUT         FALSE
+    NEEDS_MIDI_OUTPUT         TRUE
     PLUGIN_MANUFACTURER_CODE  Mtge
     PLUGIN_CODE               Atmd
     COPY_PLUGIN_AFTER_BUILD   ${COPY_PLUGIN_AFTER_BUILD}
@@ -34,6 +34,15 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${ESSENTIA_INCLUDE_DIR}
 )
+
+# TODO: Fix deprecation warnings in Audio2Midi
+# Disable specific warnings for this plugin only
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(${PROJECT_NAME} PRIVATE 
+        -Wno-error            # Disable -Werror
+        -Wno-deprecated-declarations   # Disable -Wdeprecated-declarations
+    )
+endif()
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE

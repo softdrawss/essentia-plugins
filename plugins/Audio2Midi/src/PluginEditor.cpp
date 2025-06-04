@@ -33,17 +33,17 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 
     g.setFont(35.0f);
 
-    const float eLin = processorRef.getEnergyLinear();
-    const float eDB  = processorRef.getEnergydB();
+    // const float eLin = processorRef.getEnergyLinear();
+    // const float eDB  = processorRef.getEnergydB();
 
-    juce::String info;
-    info << "Energy (lin): " << juce::String(eLin, 3) << "\n"
-         << "Energy (dB):  " << juce::String(eDB, 3) << " dB";
+    // juce::String info;
+    // info << "Energy (lin): " << juce::String(eLin, 3) << "\n"
+    //      << "Energy (dB):  " << juce::String(eDB, 3) << " dB";
 
-    g.drawFittedText(info, getLocalBounds().reduced(10), juce::Justification::centred, 2);
+    // g.drawFittedText(info, getLocalBounds().reduced(10), juce::Justification::centred, 2);
 
-    g.setFont(15.0f);
-    g.drawFittedText("plugins/Energy", getLocalBounds(), juce::Justification::centredBottom, 1);
+    g.setFont(35.0f);
+    g.drawFittedText("plugins/Audio2Midi", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void AudioPluginAudioProcessorEditor::resized()

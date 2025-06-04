@@ -88,28 +88,37 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
 {
     juce::ignoreUnused(sampleRate, samplesPerBlock);
     essentia::init();
+
     auto& factory = essentia::standard::AlgorithmFactory::instance();
 
-    // create algorithm once
-    energyAlg = factory.create("Energy");
+    // initialize algorithms: audio2Midi and energy
+    audio2midi = factory.create("Audio2Midi", "hopSize", samplesPerBlock, "sampleRate", sampleRate);
 
-    // allocate vector once to max block size
-    inBuffer.resize(static_cast<std::size_t>(samplesPerBlock));
+    // connect buffer to algorithms
+    // connecting audio2midi
+    audio2midi->input("frame").set(inputFrame);
+    audio2midi->output("pitch").set(pitch);
+    audio2midi->output("loudness").set(rms);
+    audio2midi->output("messageType").set(messageType);
+    audio2midi->output("midiNoteNumber").set(midiNoteNumber);
+    audio2midi->output("timeCompensation").set(timeCompensation);
 
-    // connect ports once
-    energyAlg->input("array").set(inBuffer);
-    energyAlg->output("energy").set(energyValue);
+    /*DBG("sampleRate: " + juce::String(sampleRate));
+    DBG("samplesPerBlock: " + juce::String(samplesPerBlock));*/
 
-    // prime to avoid heap allocs in the audio thread
-    std::fill(inBuffer.begin(), inBuffer.end(), 0.f);
-    energyAlg->compute();
+    // resize the essentia buffer to avoid allocations during the processing
+    inputFrame.clear();
+    inputFrame.resize(static_cast<std::size_t>(samplesPerBlock));
+
+    msPerSample = 1000 / sampleRate;
+    mSampleRate = sampleRate;
+
+    currentTime = 0;
 }
 
 void AudioPluginAudioProcessor::releaseResources()
 {
-    delete energyAlg;
-    energyAlg = nullptr;
-    inBuffer.clear();
+    audio2midi = nullptr;
     essentia::shutdown();
 }
 
@@ -140,16 +149,121 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(const BusesLayout& layout
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
                                              juce::MidiBuffer&         midiMessages)
 {
-    juce::ignoreUnused(midiMessages);
+    juce::ignoreUnused(midiMessages, buffer);
 
-    const int n = buffer.getNumSamples();
+    // clear the output before adding stuff
+    midiMessages.clear();
 
-    // copy first channel to Essentia vector
-    const float* read = buffer.getReadPointer(0);
-    inBuffer.assign(read, read + n);
+    // timestamp implementation from
+    // https://forum.juce.com/t/how-to-timestamp-midi-events-in-processblock-when-not-playing/11556/8
+    // ask the host for the current time so we can display it...
+    juce::AudioPlayHead::CurrentPositionInfo newTime;
 
-    // run algorithm
-    energyAlg->compute();
+    // TODO: use getPosition() instead
+    if (getPlayHead() != nullptr && getPlayHead()->getCurrentPosition(newTime))
+    {
+        // Successfully got the current time from the host..
+        lastPosInfo = newTime;
+    }
+    else
+    {
+        // If the host fails to fill-in the current time, we'll just clear it to a default..
+        lastPosInfo.resetToDefault();
+    }
+
+    // keep track of time even whe the host isn't playing (set currentTime = 0 in prepareToPlay)
+    currentTime += msPerSample * buffer.getNumSamples();
+    if (newTime.isPlaying != true)
+        currentTime = 0;
+    // DBG("Current time: " + juce::String(currentTime));
+
+    // TODO: estimate RMS and define a threshold for signal content detection
+    // TODO: if there is no signal and the system is stopped skip the processing
+    // processing preparation
+    float* start =
+        buffer.getWritePointer(0); // get the pointer to the first sample of the first channel
+    int                numSamples = buffer.getNumSamples();
+    std::vector<float> audio_buffer_vec(start, start + numSamples);
+    // TODO: look at how to load data directly from the JUCE buffer
+    for (auto sample : audio_buffer_vec)
+    {
+        inputFrame.push_back(sample);
+    }
+
+    audio2midi->compute();
+
+    // TODO: check the issue we have with MIDI noise and the high performance it needs for small
+    // blocks this is just to provide output when it is playing and mute when it is stopped
+    if (newTime.isPlaying == true)
+    {
+
+        // TODO: use rms value and threshold to silence unvoiced messages
+        // TODO: define loudness threshold as parameter and control it with an slider
+        // TODO: define pitch confidence threshold as parameter and control it with an slider
+        // TODO: apply time compensation for midi events if needed
+        // TODO: get velocity value from audio2MIDI
+
+        // filter empty message outputs
+        if (messageType.empty())
+            return;
+
+        // TODO: convert RMS to velocity
+        DBG("rms: " + juce::String(rms) + " - " + juce::String(messageType.size()));
+
+        // process a single message
+        if (messageType.size() == 1)
+        {
+
+            /*DBG("msg: " + juce::String(messageType[0]) + " - midinote: " +
+             * juce::String(midiNoteNumber[0]) + " - timestamp: " + juce::String(currentTime /
+             * 1000));*/
+
+            auto message = juce::MidiMessage::noteOn(10,
+                                                     static_cast<int>(midiNoteNumber[0]),
+                                                     (juce::uint8) 100);
+
+            if (messageType[0] == "note_off")
+            {
+                // generate noteoff message
+                message = juce::MidiMessage::noteOff(10,
+                                                     static_cast<int>(midiNoteNumber[0]),
+                                                     (juce::uint8) 100);
+            }
+
+            message.setTimeStamp(currentTime);
+            auto sampleNumber = (int) (currentTime * mSampleRate);
+            midiMessages.addEvent(message, sampleNumber);
+
+            // process note-off and note-on message simultaneously in the same block
+        }
+        else if (messageType.size() == 2)
+        {
+            // generate noteoff message
+            /*DBG("msg: " + juce::String(messageType[0]) + " - midinote: " +
+             * juce::String(midiNoteNumber[0]) + " - timestamp: " + juce::String(currentTime /
+             * 1000));*/
+            auto message = juce::MidiMessage::noteOff(10,
+                                                      static_cast<int>(midiNoteNumber[0]),
+                                                      (juce::uint8) 100);
+            message.setTimeStamp(currentTime);
+            auto sampleNumber = (int) (currentTime * mSampleRate);
+            midiMessages.addEvent(message, sampleNumber);
+
+            // generate noteon message
+            /*DBG("msg2: "+ juce::String(messageType[1]) + " - midinote: " +
+             * juce::String(midiNoteNumber[1]) + " - timestamp: " + juce::String(currentTime / 1000)
+             * );*/
+            message = juce::MidiMessage::noteOn(10,
+                                                static_cast<int>(midiNoteNumber[1]),
+                                                (juce::uint8) 100);
+            message.setTimeStamp(currentTime);
+            sampleNumber = (int) (currentTime * mSampleRate);
+            midiMessages.addEvent(message, sampleNumber);
+        }
+    }
+
+    // clear the block data
+    inputFrame.clear();
 }
 
 //==============================================================================
