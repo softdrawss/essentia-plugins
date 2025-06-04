@@ -10,12 +10,76 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-      )
+                         )
+    , apvts(*this, nullptr, "Parameters", createParameters())
 {}
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 {
     releaseResources();
+}
+
+// clang-format off
+/*
+void declareParameters() {
+        declareParameter("sampleRate", "sample rate of incoming audio frames", "[8000,inf)", 44100);
+        declareParameter("hopSize", "equivalent to I/O buffer size", "[1,inf)", 32);
+        declareParameter("minFrequency", "minimum frequency to detect in Hz", "[10,20000]", 60.0);
+        declareParameter("maxFrequency", "maximum frequency to detect in Hz", "[10,20000]", 2300.0);
+        declareParameter("tuningFrequency", "tuning frequency for semitone index calculation, corresponding to A3 [Hz]", "{432,440}", 440);
+        declareParameter("pitchConfidenceThreshold", "level of pitch confidence above which note ON/OFF start to be considered", "[0,1]", 0.25);
+        declareParameter("loudnessThreshold", "loudness level above/below which note ON/OFF start to be considered, in decibels", "[-inf,0]", -51.0);
+        declareParameter("transpositionAmount", "Apply transposition (in semitones) to the detected MIDI notes.", "(-69,50)", 0);
+        declareParameter("minOccurrenceRate", "rate of predominant pitch occurrence in MidiPool buffer to consider note ON event", "[0,1]", 0.5);
+        declareParameter("midiBufferDuration", "duration in seconds of buffer used for voting in MidiPool algorithm", "[0.005,0.5]", 0.05); // 15ms
+        declareParameter("minNoteChangePeriod", "minimum time to wait until a note change is detected (testing only)", "(0,1]", 0.030);
+        declareParameter("minOnsetCheckPeriod", "minimum time to wait until an onset is detected (testing only)", "(0,1]", 0.075);
+        declareParameter("minOffsetCheckPeriod", "minimum time to wait until an offset is detected (testing only)", "(0,1]", 0.2);
+        declareParameter("applyTimeCompensation", "whether to apply time compensation correction to MIDI note detection", "{true,false}", true);
+      }
+*/
+// clang-format on
+
+juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginAudioProcessor::createParameters() const
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("minFrequency",
+                                                           "Minimum Frequency",
+                                                           juce::NormalisableRange<float>(10.0f, 20000.0f, 1.0f, 0.1f),
+                                                           60.0f,
+                                                           "Hz"));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("maxFrequency",
+                                                           "Maximum Frequency",
+                                                           juce::NormalisableRange<float>(10.0f, 20000.0f, 1.0f, 0.1f),
+                                                           2300.0f,
+                                                           "Hz"));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("tuningFrequency",
+                                                           "Tuning Frequency",
+                                                           juce::NormalisableRange<float>(432.0f, 440.0f, 1.0f, 0.1f),
+                                                           440.0f,
+                                                           "Hz"));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("pitchConfidenceThreshold",
+                                                           "Pitch Confidence Threshold",
+                                                           0.0f,
+                                                           1.0f,
+                                                           0.25f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("loudnessThreshold",
+                                                           "Loudness Threshold",
+                                                           juce::NormalisableRange<float>(-80, 0.0f, 0.1f, 0.1f),
+                                                           -51.0f,
+                                                           "dB"));
+    layout.add(std::make_unique<juce::AudioParameterInt>("transpositionAmount",
+                                                         "Transposition Amount",
+                                                         -69,
+                                                         50,
+                                                         0,
+                                                         "Semitones"));
+    layout.add(std::make_unique<juce::AudioParameterBool>("applyTimeCompensation",
+                                                          "Apply Time Compensation",
+                                                          false,
+                                                          "Boolean"));
+    return layout;
 }
 
 //==============================================================================
@@ -146,8 +210,7 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(const BusesLayout& layout
 #endif
 }
 
-void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
-                                             juce::MidiBuffer&         midiMessages)
+void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ignoreUnused(midiMessages, buffer);
 
@@ -180,8 +243,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     // TODO: estimate RMS and define a threshold for signal content detection
     // TODO: if there is no signal and the system is stopped skip the processing
     // processing preparation
-    float* start =
-        buffer.getWritePointer(0); // get the pointer to the first sample of the first channel
+    float*             start = buffer.getWritePointer(0); // get the pointer to the first sample of the first channel
     int                numSamples = buffer.getNumSamples();
     std::vector<float> audio_buffer_vec(start, start + numSamples);
     // TODO: look at how to load data directly from the JUCE buffer
@@ -218,16 +280,12 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
              * juce::String(midiNoteNumber[0]) + " - timestamp: " + juce::String(currentTime /
              * 1000));*/
 
-            auto message = juce::MidiMessage::noteOn(10,
-                                                     static_cast<int>(midiNoteNumber[0]),
-                                                     (juce::uint8) 100);
+            auto message = juce::MidiMessage::noteOn(10, static_cast<int>(midiNoteNumber[0]), (juce::uint8) 100);
 
             if (messageType[0] == "note_off")
             {
                 // generate noteoff message
-                message = juce::MidiMessage::noteOff(10,
-                                                     static_cast<int>(midiNoteNumber[0]),
-                                                     (juce::uint8) 100);
+                message = juce::MidiMessage::noteOff(10, static_cast<int>(midiNoteNumber[0]), (juce::uint8) 100);
             }
 
             message.setTimeStamp(currentTime);
@@ -242,9 +300,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             /*DBG("msg: " + juce::String(messageType[0]) + " - midinote: " +
              * juce::String(midiNoteNumber[0]) + " - timestamp: " + juce::String(currentTime /
              * 1000));*/
-            auto message = juce::MidiMessage::noteOff(10,
-                                                      static_cast<int>(midiNoteNumber[0]),
-                                                      (juce::uint8) 100);
+            auto message = juce::MidiMessage::noteOff(10, static_cast<int>(midiNoteNumber[0]), (juce::uint8) 100);
             message.setTimeStamp(currentTime);
             auto sampleNumber = (int) (currentTime * mSampleRate);
             midiMessages.addEvent(message, sampleNumber);
@@ -253,9 +309,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             /*DBG("msg2: "+ juce::String(messageType[1]) + " - midinote: " +
              * juce::String(midiNoteNumber[1]) + " - timestamp: " + juce::String(currentTime / 1000)
              * );*/
-            message = juce::MidiMessage::noteOn(10,
-                                                static_cast<int>(midiNoteNumber[1]),
-                                                (juce::uint8) 100);
+            message = juce::MidiMessage::noteOn(10, static_cast<int>(midiNoteNumber[1]), (juce::uint8) 100);
             message.setTimeStamp(currentTime);
             sampleNumber = (int) (currentTime * mSampleRate);
             midiMessages.addEvent(message, sampleNumber);
@@ -274,7 +328,8 @@ bool AudioPluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
 {
-    return new AudioPluginAudioProcessorEditor(*this);
+    // return new AudioPluginAudioProcessorEditor(*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================

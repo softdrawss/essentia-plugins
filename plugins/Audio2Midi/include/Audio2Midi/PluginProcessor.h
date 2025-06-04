@@ -45,6 +45,9 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
 private:
+    juce::AudioProcessorValueTreeState                  apvts;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameters() const;
+
     essentia::standard::Algorithm* audio2midi{nullptr};
     // std::vector<essentia::Real>    inBuffer;
     // essentia::Real                 energyValue{0.f};
