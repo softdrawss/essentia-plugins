@@ -47,6 +47,7 @@ public:
 private:
     juce::AudioProcessorValueTreeState                  apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters() const;
+    void                                                updateParameters();
 
     essentia::standard::Algorithm* audio2midi{nullptr};
     // std::vector<essentia::Real>    inBuffer;

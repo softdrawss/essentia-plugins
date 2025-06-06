@@ -210,9 +210,16 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(const BusesLayout& layout
 #endif
 }
 
+void AudioPluginAudioProcessor::updateParameters()
+{
+    if (audio2midi == nullptr)
+        return;
+}
+
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ignoreUnused(midiMessages, buffer);
+    updateParameters();
 
     // clear the output before adding stuff
     midiMessages.clear();
