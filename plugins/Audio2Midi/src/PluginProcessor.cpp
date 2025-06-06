@@ -214,6 +214,28 @@ void AudioPluginAudioProcessor::updateParameters()
 {
     if (audio2midi == nullptr)
         return;
+
+    // Defaults (static, what declareParameters() registered)
+    const auto& def = audio2midi->defaultParameters();
+    DBG("---- Audio2Midi default values ----");
+    DBG("minFrequency           : " + juce::String(def["minFrequency"].toReal()));
+    DBG("maxFrequency           : " + juce::String(def["maxFrequency"].toReal()));
+    DBG("tuningFrequency        : " + juce::String(def["tuningFrequency"].toInt()));
+    DBG("pitchConfThreshold     : " + juce::String(def["pitchConfidenceThreshold"].toReal()));
+    DBG("loudnessThreshold (dB) : " + juce::String(def["loudnessThreshold"].toReal()));
+    DBG("transpositionAmount    : " + juce::String(def["transpositionAmount"].toInt()));
+    DBG("applyTimeCompensation  : " + juce::String(def["applyTimeCompensation"].toBool() ? "true" : "false"));
+
+    // Current values (after any configure() calls you made)
+    DBG("---- Audio2Midi CURRENT values ----");
+    DBG("minFrequency           : " + juce::String(audio2midi->parameter("minFrequency").toReal()));
+    DBG("maxFrequency           : " + juce::String(audio2midi->parameter("maxFrequency").toReal()));
+    DBG("tuningFrequency        : " + juce::String(audio2midi->parameter("tuningFrequency").toInt()));
+    DBG("pitchConfThreshold     : " + juce::String(audio2midi->parameter("pitchConfidenceThreshold").toReal()));
+    DBG("loudnessThreshold (dB) : " + juce::String(audio2midi->parameter("loudnessThreshold").toReal()));
+    DBG("transpositionAmount    : " + juce::String(audio2midi->parameter("transpositionAmount").toInt()));
+    DBG("applyTimeCompensation  : " +
+        juce::String(audio2midi->parameter("applyTimeCompensation").toBool() ? "true" : "false"));
 }
 
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
