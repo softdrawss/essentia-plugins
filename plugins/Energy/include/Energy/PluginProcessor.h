@@ -46,7 +46,7 @@ public:
 
     float getEnergyLinear() const { return energyValue; }
 
-    float getEnergydB() const { return essentia::lin2db(energyValue); }
+    float getEnergydB() const { return essentia::amp2db(energyValue); }
 
 private:
     essentia::standard::Algorithm* energyAlg{nullptr};
