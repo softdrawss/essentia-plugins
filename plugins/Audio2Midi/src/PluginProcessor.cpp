@@ -236,6 +236,31 @@ void AudioPluginAudioProcessor::updateParameters()
     DBG("transpositionAmount    : " + juce::String(audio2midi->parameter("transpositionAmount").toInt()));
     DBG("applyTimeCompensation  : " +
         juce::String(audio2midi->parameter("applyTimeCompensation").toBool() ? "true" : "false"));
+
+    // Get current parameter values from apvts
+    float minFrequency             = *apvts.getRawParameterValue("minFrequency");
+    float maxFrequency             = *apvts.getRawParameterValue("maxFrequency");
+    float tuningFrequency          = *apvts.getRawParameterValue("tuningFrequency");
+    float pitchConfidenceThreshold = *apvts.getRawParameterValue("pitchConfidenceThreshold");
+    float loudnessThreshold        = *apvts.getRawParameterValue("loudnessThreshold");
+    int   transpositionAmount      = *apvts.getRawParameterValue("transpositionAmount");
+    bool  applyTimeCompensation    = *apvts.getRawParameterValue("applyTimeCompensation");
+
+    // Configure the algorithm with new parameter values
+    audio2midi->configure("minFrequency",
+                          minFrequency,
+                          "maxFrequency",
+                          maxFrequency,
+                          "tuningFrequency",
+                          static_cast<int>(tuningFrequency),
+                          "pitchConfidenceThreshold",
+                          pitchConfidenceThreshold,
+                          "loudnessThreshold",
+                          loudnessThreshold,
+                          "transpositionAmount",
+                          transpositionAmount,
+                          "applyTimeCompensation",
+                          applyTimeCompensation);
 }
 
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
