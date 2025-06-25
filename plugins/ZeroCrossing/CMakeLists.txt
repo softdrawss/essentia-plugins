@@ -1,19 +1,19 @@
-project(MyPluginPlugin VERSION 0.1.0) # TODO: Change this
+project(ZeroCrossingPlugin VERSION 0.1.0)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 juce_add_plugin(
     ${PROJECT_NAME}
-    COMPANY_NAME              "Music Technology Group" # TODO: Change this
-    BUNDLE_ID                 "com.MusicTechnologyGroup.MyPlugin" # TODO: Change this
+    COMPANY_NAME              "Music Technology Group"
+    BUNDLE_ID                 "com.MusicTechnologyGroup.ZeroCrossing"
     IS_SYNTH                  FALSE
     NEEDS_MIDI_INPUT          FALSE
     NEEDS_MIDI_OUTPUT         FALSE
-    PLUGIN_MANUFACTURER_CODE  Mtge # TODO: Change this
-    PLUGIN_CODE               Atmd # TODO: Change this
+    PLUGIN_MANUFACTURER_CODE  Mtge
+    PLUGIN_CODE               Zcpl
     COPY_PLUGIN_AFTER_BUILD   ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_INSTALL_DIR        "${PLUGIN_INSTALL_DIR}"
     FORMATS                   ${PLUGIN_FORMATS}
-    PRODUCT_NAME              "My Plugin" # TODO: Change this
+    PRODUCT_NAME              "Zero Crossing"
 )
 
 # point sources to src/

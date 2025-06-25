@@ -1,5 +1,5 @@
-#include "MyPlugin/PluginEditor.h"
-#include "MyPlugin/PluginProcessor.h"
+#include "ZeroCrossing/PluginEditor.h"
+#include "ZeroCrossing/PluginProcessor.h"
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor& p)

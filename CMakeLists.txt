@@ -81,6 +81,7 @@ endif()
 add_subdirectory(plugins/Energy)
 add_subdirectory(plugins/RMS)
 add_subdirectory(plugins/Audio2Midi)
+add_subdirectory(plugins/ZeroCrossing)
 
 # enable_testing()
 # add_subdirectory(test)
