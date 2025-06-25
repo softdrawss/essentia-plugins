@@ -1,10 +1,10 @@
-project(ZeroCrossingPlugin VERSION 0.1.0)
+project(ZeroCrossingRatePlugin VERSION 0.1.0)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 juce_add_plugin(
     ${PROJECT_NAME}
     COMPANY_NAME              "Music Technology Group"
-    BUNDLE_ID                 "com.MusicTechnologyGroup.ZeroCrossing"
+    BUNDLE_ID                 "com.MusicTechnologyGroup.ZeroCrossingRate"
     IS_SYNTH                  FALSE
     NEEDS_MIDI_INPUT          FALSE
     NEEDS_MIDI_OUTPUT         FALSE
@@ -13,7 +13,7 @@ juce_add_plugin(
     COPY_PLUGIN_AFTER_BUILD   ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_INSTALL_DIR        "${PLUGIN_INSTALL_DIR}"
     FORMATS                   ${PLUGIN_FORMATS}
-    PRODUCT_NAME              "Zero Crossing"
+    PRODUCT_NAME              "Zero Crossing Rate"
 )
 
 # point sources to src/

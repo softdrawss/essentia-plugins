@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ZeroCrossing/PluginProcessor.h"
+#include "ZeroCrossingRate/PluginProcessor.h"
 
 //==============================================================================
 class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor, private juce::Timer
