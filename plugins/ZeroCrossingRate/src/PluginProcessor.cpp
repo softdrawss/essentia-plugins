@@ -91,7 +91,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
     auto& factory = essentia::standard::AlgorithmFactory::instance();
 
     // create algorithm once
-    zeroCrossingAlg = factory.create("ZeroCrossingRate");
+    zeroCrossingAlg = factory.create("ZeroCrossingRate", "threshold", zeroCrossingThreshold);
 
     // allocate vector once to max block size
     inBuffer.resize(static_cast<std::size_t>(samplesPerBlock));

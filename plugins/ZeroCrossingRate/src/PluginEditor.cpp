@@ -38,8 +38,13 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 
     // Draw ZCR value
     g.setFont(35.0f);
-    const float  zcValue = processorRef.getZeroCrossingRateValue();
-    juce::String info    = "ZCR: " + juce::String(zcValue, 3);
+    const float  zcValue    = processorRef.getZeroCrossingRateValue();
+    const double eFreqValue = processorRef.getEstimatedFrequency();
+
+    juce::String info;
+    info << "ZCR: " << juce::String(zcValue, 3) << "\n"
+         << "EFreq: " << juce::String(eFreqValue, 1) << " Hz";
+
     g.drawFittedText(info, getLocalBounds().reduced(10), juce::Justification::centred, 2);
 
     // Draw footer with build information

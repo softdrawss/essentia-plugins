@@ -46,9 +46,12 @@ public:
 
     float getZeroCrossingRateValue() const { return zeroCrossingValue; }
 
+    double getEstimatedFrequency() const { return zeroCrossingValue * getSampleRate() / 2.0; }
+
 private:
     essentia::standard::Algorithm* zeroCrossingAlg{nullptr};
     std::vector<essentia::Real>    inBuffer;
+    essentia::Real                 zeroCrossingThreshold{0.f};
     essentia::Real                 zeroCrossingValue{0.f};
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
