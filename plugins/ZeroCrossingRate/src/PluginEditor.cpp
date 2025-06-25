@@ -23,28 +23,32 @@ void AudioPluginAudioProcessorEditor::timerCallback()
 //==============================================================================
 void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 {
+    // Fill background
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 
+    // Set common text color
     g.setColour(juce::Colours::white);
+
+    // Draw header
     g.setFont(25.0f);
-    g.drawFittedText("Essentia:" + juce::String(essentia::version),
+    g.drawFittedText("Essentia: " + juce::String(essentia::version),
                      getLocalBounds(),
                      juce::Justification::centredTop,
                      1);
 
+    // Draw ZCR value
     g.setFont(35.0f);
-
-    const float eLin = processorRef.getEnergyLinear();
-    const float eDB  = processorRef.getEnergydB();
-
-    juce::String info;
-    info << "Energy (lin): " << juce::String(eLin, 3) << "\n"
-         << "Energy (dB):  " << juce::String(eDB, 3) << " dB";
-
+    const float  zcValue = processorRef.getZeroCrossingRateValue();
+    juce::String info    = "ZCR: " + juce::String(zcValue, 3);
     g.drawFittedText(info, getLocalBounds().reduced(10), juce::Justification::centred, 2);
 
+    // Draw footer with build information
     g.setFont(15.0f);
-    g.drawFittedText("plugins/MyPlugin", getLocalBounds(), juce::Justification::centredBottom, 1);
+    const juce::String lastBuildDate = __DATE__ " " __TIME__;
+    g.drawFittedText("plugins/ZeroCrossingRate\nBuild: " + lastBuildDate,
+                     getLocalBounds(),
+                     juce::Justification::centredBottom,
+                     1);
 }
 
 void AudioPluginAudioProcessorEditor::resized()

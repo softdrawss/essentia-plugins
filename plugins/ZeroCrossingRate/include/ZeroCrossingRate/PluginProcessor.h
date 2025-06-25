@@ -44,9 +44,7 @@ public:
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    float getEnergyLinear() const { return zeroCrossingValue; }
-
-    float getEnergydB() const { return essentia::lin2db(zeroCrossingValue); }
+    float getZeroCrossingRateValue() const { return zeroCrossingValue; }
 
 private:
     essentia::standard::Algorithm* zeroCrossingAlg{nullptr};
