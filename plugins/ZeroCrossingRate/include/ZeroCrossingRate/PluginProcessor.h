@@ -49,6 +49,10 @@ public:
     double getEstimatedFrequency() const { return zeroCrossingValue * getSampleRate() / 2.0; }
 
 private:
+    juce::AudioProcessorValueTreeState                  apvts;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameters() const;
+    void                                                updateParameters();
+
     essentia::standard::Algorithm* zeroCrossingAlg{nullptr};
     std::vector<essentia::Real>    inBuffer;
     essentia::Real                 zeroCrossingThreshold{0.f};

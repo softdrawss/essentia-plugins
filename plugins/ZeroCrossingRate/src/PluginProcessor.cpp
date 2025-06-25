@@ -10,12 +10,26 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-      )
+                         )
+    , apvts(*this, nullptr, "Parameters", createParameters())
 {}
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 {
     releaseResources();
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginAudioProcessor::createParameters() const
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("zeroCrossingThreshold",
+                                                           "Zero Crossing Threshold",
+                                                           0.0f,
+                                                           1.0f,
+                                                           0.0f));
+
+    return layout;
 }
 
 //==============================================================================
@@ -137,9 +151,29 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(const BusesLayout& layout
 #endif
 }
 
+void AudioPluginAudioProcessor::updateParameters()
+{
+    // Get the current parameter value
+    auto newThreshold = static_cast<essentia::Real>(apvts.getRawParameterValue("zeroCrossingThreshold")->load());
+
+    // Use epsilon comparison for floating point values
+    constexpr float epsilon = 0.000001f;
+    if (std::abs(newThreshold - zeroCrossingThreshold) < epsilon)
+        return; // no significant change
+
+    zeroCrossingThreshold = newThreshold;
+
+    if (zeroCrossingAlg != nullptr)
+    {
+        zeroCrossingAlg->configure("threshold", zeroCrossingThreshold);
+        DBG("ZeroCrossingRate threshold updated to: " << zeroCrossingThreshold);
+    }
+}
+
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ignoreUnused(midiMessages);
+    updateParameters();
 
     const int n = buffer.getNumSamples();
 
