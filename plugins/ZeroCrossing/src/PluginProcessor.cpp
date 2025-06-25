@@ -91,24 +91,24 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
     auto& factory = essentia::standard::AlgorithmFactory::instance();
 
     // create algorithm once
-    energyAlg = factory.create("Energy");
+    zeroCrossingAlg = factory.create("ZeroCrossingRate");
 
     // allocate vector once to max block size
     inBuffer.resize(static_cast<std::size_t>(samplesPerBlock));
 
     // connect ports once
-    energyAlg->input("array").set(inBuffer);
-    energyAlg->output("energy").set(energyValue);
+    zeroCrossingAlg->input("signal").set(inBuffer);
+    zeroCrossingAlg->output("zeroCrossingRate").set(zeroCrossingValue);
 
     // prime to avoid heap allocs in the audio thread
     std::fill(inBuffer.begin(), inBuffer.end(), 0.f);
-    energyAlg->compute();
+    zeroCrossingAlg->compute();
 }
 
 void AudioPluginAudioProcessor::releaseResources()
 {
-    delete energyAlg;
-    energyAlg = nullptr;
+    delete zeroCrossingAlg;
+    zeroCrossingAlg = nullptr;
     inBuffer.clear();
     essentia::shutdown();
 }
@@ -137,8 +137,7 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(const BusesLayout& layout
 #endif
 }
 
-void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
-                                             juce::MidiBuffer&         midiMessages)
+void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ignoreUnused(midiMessages);
 
@@ -149,7 +148,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     inBuffer.assign(read, read + n);
 
     // run algorithm
-    energyAlg->compute();
+    zeroCrossingAlg->compute();
 }
 
 //==============================================================================

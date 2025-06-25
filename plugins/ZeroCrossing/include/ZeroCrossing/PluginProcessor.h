@@ -44,14 +44,14 @@ public:
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    float getEnergyLinear() const { return energyValue; }
+    float getEnergyLinear() const { return zeroCrossingValue; }
 
-    float getEnergydB() const { return essentia::lin2db(energyValue); }
+    float getEnergydB() const { return essentia::lin2db(zeroCrossingValue); }
 
 private:
-    essentia::standard::Algorithm* energyAlg{nullptr};
+    essentia::standard::Algorithm* zeroCrossingAlg{nullptr};
     std::vector<essentia::Real>    inBuffer;
-    essentia::Real                 energyValue{0.f};
+    essentia::Real                 zeroCrossingValue{0.f};
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };
