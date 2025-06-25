@@ -6,10 +6,25 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     : AudioProcessorEditor(&p)
     , processorRef(p)
 {
-    juce::ignoreUnused(processorRef);
+    // Set up the threshold slider
+    thresholdSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    thresholdSlider.setRange(0.0, 1.0, 0.01);
+    thresholdSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 60, 20);
+    addAndMakeVisible(thresholdSlider);
+
+    // Set up the threshold label
+    thresholdLabel.setText("Threshold", juce::dontSendNotification);
+    thresholdLabel.attachToComponent(&thresholdSlider, true);
+    addAndMakeVisible(thresholdLabel);
+
+    // Create the slider attachment to connect it to the processor's parameter
+    thresholdAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(processorRef.getAPVTS(),
+                                                                                       "zeroCrossingThreshold",
+                                                                                       thresholdSlider));
+
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize(400, 300);
+    setSize(500, 350);
     startTimerHz(30);
 }
 
@@ -45,7 +60,11 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
     info << "ZCR: " << juce::String(zcValue, 3) << "\n"
          << "EFreq: " << juce::String(eFreqValue, 1) << " Hz";
 
-    g.drawFittedText(info, getLocalBounds().reduced(10), juce::Justification::centred, 2);
+    // Draw in the upper half of the window
+    g.drawFittedText(info,
+                     getLocalBounds().withTrimmedBottom(getHeight() / 2).reduced(10),
+                     juce::Justification::centred,
+                     2);
 
     // Draw footer with build information
     g.setFont(15.0f);
@@ -58,6 +77,15 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 
 void AudioPluginAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    // Layout for the slider - place it centered in the bottom half of the window
+    const int sliderY      = getHeight() / 2 + 50; // Position it further below the middle
+    const int sliderHeight = 30;
+    const int sliderWidth  = static_cast<int>(getWidth() * 0.7f); // Use 70% of the window width for the slider
+
+    // Center the slider horizontally with enough space for label on left
+    const int labelWidth = 80;
+    const int sliderX    = (getWidth() - sliderWidth - labelWidth) / 2 + labelWidth;
+
+    // Position slider centered horizontally
+    thresholdSlider.setBounds(sliderX, sliderY, sliderWidth, sliderHeight);
 }

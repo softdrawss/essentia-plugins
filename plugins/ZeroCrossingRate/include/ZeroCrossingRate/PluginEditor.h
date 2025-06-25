@@ -19,5 +19,9 @@ private:
     AudioPluginAudioProcessor& processorRef;
     void                       timerCallback() override;
 
+    juce::Slider                                                          thresholdSlider;
+    juce::Label                                                           thresholdLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> thresholdAttachment;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessorEditor)
 };

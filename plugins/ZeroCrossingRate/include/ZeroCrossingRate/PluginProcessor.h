@@ -48,6 +48,8 @@ public:
 
     double getEstimatedFrequency() const { return zeroCrossingValue * getSampleRate() / 2.0; }
 
+    juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
+
 private:
     juce::AudioProcessorValueTreeState                  apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters() const;
