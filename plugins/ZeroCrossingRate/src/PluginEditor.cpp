@@ -147,6 +147,8 @@ void ModernLookAndFeel::drawLinearSlider(juce::Graphics&                 g,
         g.setColour(juce::Colour(0xff4299e1));
         g.fillRoundedRectangle(x, trackY, filledWidth, trackHeight, 3.0f);
     }
+
+    drawLinearSliderThumb(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
 }
 
 void ModernLookAndFeel::drawLinearSliderThumb(juce::Graphics&                 g,
@@ -247,6 +249,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     thresholdAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(processorRef.getAPVTS(),
                                                                                        "zeroCrossingThreshold",
                                                                                        thresholdSlider));
+    const float initThreshold = static_cast<float>(thresholdSlider.getValue());
+    waveformComponent.setThreshold(initThreshold);
+    thresholdValueLabel.setText(juce::String(initThreshold, 2), juce::dontSendNotification);
 
     // Load logos from binary data
     upfLogo      = juce::ImageCache::getFromMemory(BinaryData::upflogo_png, BinaryData::upflogo_pngSize);
