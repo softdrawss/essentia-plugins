@@ -1,5 +1,4 @@
 #include "ZeroCrossingRate/PluginEditor.h"
-#include <juce_core/juce_core.h>
 
 //==============================================================================
 // WaveformComponent Implementation
@@ -62,13 +61,11 @@ void WaveformComponent::paint(juce::Graphics& g)
         g.strokePath(waveformPath, juce::PathStrokeType(1.5f));
     }
 
-    // Draw threshold lines (positive and negative)
+    // Draw threshold line (positive only)
     const float thresholdY_pos = centerY - (currentThreshold * height * 0.3f);
-    const float thresholdY_neg = centerY + (currentThreshold * height * 0.3f);
 
     g.setColour(juce::Colour(0xfff56565));
     g.fillRect(margin, thresholdY_pos - 1.0f, width - 2 * margin, 2.0f);
-    g.fillRect(margin, thresholdY_neg - 1.0f, width - 2 * margin, 2.0f);
 
     // Draw center line (0 amplitude)
     g.setColour(juce::Colour(0x404299e1));
@@ -307,10 +304,6 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 
     g.setColour(juce::Colour(0xff3a4553));
     g.drawRoundedRectangle(containerBounds, 16.0f, 1.0f);
-
-    // Simple accent line at top
-    g.setColour(juce::Colour(0xff4299e1));
-    g.fillRoundedRectangle(containerBounds.getX(), containerBounds.getY(), containerBounds.getWidth(), 2.0f, 1.0f);
 
     // Draw result display background with solid color
     const auto resultBounds = getLocalBounds()
