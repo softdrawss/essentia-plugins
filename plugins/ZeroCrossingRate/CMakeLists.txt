@@ -1,8 +1,8 @@
-project(ZeroCrossingRatePlugin VERSION 0.1.0)
+project(ZCRAnalyzerPlugin VERSION 0.1.0)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 # Create binary data for assets
-juce_add_binary_data(ZeroCrossingRateBinaryData
+juce_add_binary_data(ZCRAnalyzerBinaryData
     SOURCES
         ../assets/upflogo.png
         ../assets/essentia_logo.png
@@ -11,16 +11,16 @@ juce_add_binary_data(ZeroCrossingRateBinaryData
 juce_add_plugin(
     ${PROJECT_NAME}
     COMPANY_NAME              "Music Technology Group"
-    BUNDLE_ID                 "com.MusicTechnologyGroup.ZeroCrossingRate"
+    BUNDLE_ID                 "com.MusicTechnologyGroup.ZCRAnalyzer"
     IS_SYNTH                  FALSE
     NEEDS_MIDI_INPUT          FALSE
     NEEDS_MIDI_OUTPUT         FALSE
     PLUGIN_MANUFACTURER_CODE  Mtge
-    PLUGIN_CODE               Zcpl
+    PLUGIN_CODE               Zcra
     COPY_PLUGIN_AFTER_BUILD   ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_INSTALL_DIR        "${PLUGIN_INSTALL_DIR}"
     FORMATS                   ${PLUGIN_FORMATS}
-    PRODUCT_NAME              "Zero Crossing Rate"
+    PRODUCT_NAME              "ZCR Analyzer"
 )
 
 # point sources to src/
@@ -44,7 +44,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        ZeroCrossingRateBinaryData
+        ZCRAnalyzerBinaryData
         essentia
         Eigen3::Eigen
         juce::juce_audio_processors

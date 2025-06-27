@@ -186,14 +186,14 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     setLookAndFeel(&modernLF);
 
     // Setup title label
-    titleLabel.setText("Zero Crossing Rate Analyzer", juce::dontSendNotification);
+    titleLabel.setText("ZCR Analyzer", juce::dontSendNotification);
     titleLabel.setFont(juce::FontOptions(24.0f));
     titleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     titleLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(titleLabel);
 
     // Setup subtitle label
-    subtitleLabel.setText("Real-time audio analysis tool", juce::dontSendNotification);
+    subtitleLabel.setText("Real-time zero crossing rate audio analysis", juce::dontSendNotification);
     subtitleLabel.setFont(juce::FontOptions(14.0f));
     subtitleLabel.setColour(juce::Label::textColourId, juce::Colour(0xffa0aec0));
     subtitleLabel.setJustificationType(juce::Justification::centred);
