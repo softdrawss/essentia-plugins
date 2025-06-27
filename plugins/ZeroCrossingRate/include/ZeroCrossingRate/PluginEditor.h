@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BinaryData.h"
 #include "ZeroCrossingRate/PluginProcessor.h"
 
 //==============================================================================
@@ -80,7 +81,6 @@ private:
     juce::Label  subtitleLabel;
     juce::Label  zcrValueLabel;
     juce::Label  zcrUnitLabel;
-    juce::Label  footerLabel;
 
     WaveformComponent waveformComponent;
 
@@ -88,6 +88,13 @@ private:
 
     // Custom styling
     ModernLookAndFeel modernLF;
+
+    // Logos
+    juce::Image upfLogo;
+    juce::Image essentiaLogo;
+
+    // Additional label for "powered by" text
+    juce::Label poweredByLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessorEditor)
 };

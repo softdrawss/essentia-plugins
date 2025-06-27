@@ -244,22 +244,27 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     };
     addAndMakeVisible(thresholdSlider);
 
-    // Setup footer label
-    footerLabel.setText("powered by Essentia", juce::dontSendNotification);
-    footerLabel.setFont(juce::FontOptions(12.0f));
-    footerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff718096));
-    footerLabel.setJustificationType(juce::Justification::centredRight);
-    addAndMakeVisible(footerLabel);
+    // Note: footerLabel removed - replaced with poweredByLabel + essentia logo
 
     // Create the slider attachment
     thresholdAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(processorRef.getAPVTS(),
                                                                                        "zeroCrossingThreshold",
                                                                                        thresholdSlider));
 
-    // Set plugin size
+    // Load logos from binary data
+    upfLogo      = juce::ImageCache::getFromMemory(BinaryData::upflogo_png, BinaryData::upflogo_pngSize);
+    essentiaLogo = juce::ImageCache::getFromMemory(BinaryData::essentia_logo_png, BinaryData::essentia_logo_pngSize);
+
+    // Setup "powered by" label
+    poweredByLabel.setText("powered by", juce::dontSendNotification);
+    poweredByLabel.setFont(juce::FontOptions(8.30437f));
+    poweredByLabel.setColour(juce::Label::textColourId, juce::Colour(0xff718096));
+    poweredByLabel.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(poweredByLabel);
+
+    // Set plugin size (fixed, not resizable)
     setSize(400, 500);
-    setResizable(true, true);
-    setResizeLimits(300, 400, 600, 750);
+    setResizable(false, false);
 
     // Register with processor for audio data
     processorRef.setEditor(this);
@@ -319,6 +324,48 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 
     g.setColour(juce::Colour(0xff3a4553));
     g.drawRoundedRectangle(resultBounds, 12.0f, 1.0f);
+
+    // Draw UPF logo in footer area (left side) - optimized positioning
+    if (upfLogo.isValid())
+    {
+        const float logoHeight = 37.4527f;
+        const float logoWidth  = upfLogo.getWidth() * (logoHeight / upfLogo.getHeight());
+        const int   logoX      = static_cast<int>(containerBounds.getX() + 13.0545f);
+        const int   logoY      = static_cast<int>(containerBounds.getBottom() - 47.0076f);
+
+        g.drawImage(upfLogo,
+                    logoX,
+                    logoY,
+                    static_cast<int>(logoWidth),
+                    static_cast<int>(logoHeight),
+                    0,
+                    0,
+                    upfLogo.getWidth(),
+                    upfLogo.getHeight());
+    }
+
+    // Draw Essentia logo in footer area (right side, below "powered by" text)
+    // Optimized positioning and sizing
+    if (essentiaLogo.isValid())
+    {
+        const float essentiaLogoHeight = 41.0498f;
+        const float essentiaLogoWidth  = essentiaLogo.getWidth() * (essentiaLogoHeight / essentiaLogo.getHeight());
+
+        // Center the logo+text group on the right side
+        const float groupCenterX  = containerBounds.getRight() - 67.6035f;
+        const int   essentiaLogoX = static_cast<int>(groupCenterX - essentiaLogoWidth * 0.5f);
+        const int   essentiaLogoY = static_cast<int>(containerBounds.getBottom() - 47.5474f);
+
+        g.drawImage(essentiaLogo,
+                    essentiaLogoX,
+                    essentiaLogoY,
+                    static_cast<int>(essentiaLogoWidth),
+                    static_cast<int>(essentiaLogoHeight),
+                    0,
+                    0,
+                    essentiaLogo.getWidth(),
+                    essentiaLogo.getHeight());
+    }
 }
 
 void AudioPluginAudioProcessorEditor::resized()
@@ -341,6 +388,6 @@ void AudioPluginAudioProcessorEditor::resized()
     thresholdValueLabel.setBoundsRelative(0.5f, 0.65f, 0.4f, 0.05f);
     thresholdSlider.setBoundsRelative(0.1f, 0.72f, 0.8f, 0.06f);
 
-    // Footer section (10% of height)
-    footerLabel.setBoundsRelative(0.1f, 0.88f, 0.8f, 0.04f);
+    // Footer section (10% of height) - "powered by" text optimized positioning
+    poweredByLabel.setBoundsRelative(0.72f, 0.79141f, 0.24f, 0.158919f);
 }
