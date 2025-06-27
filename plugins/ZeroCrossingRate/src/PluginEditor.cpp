@@ -6,24 +6,13 @@
 //==============================================================================
 WaveformComponent::WaveformComponent()
 {
-    generateBars();
-    startTimerHz(5); // Update animation 5 times per second
+    audioBuffer.reserve(maxBufferSize);
+    startTimerHz(30); // Update display 30 times per second
 }
 
 WaveformComponent::~WaveformComponent()
 {
     stopTimer();
-}
-
-void WaveformComponent::generateBars()
-{
-    barHeights.clear();
-    barHeights.reserve(numBars);
-
-    for (int i = 0; i < numBars; ++i)
-    {
-        barHeights.push_back(juce::Random::getSystemRandom().nextFloat() * 0.8f + 0.2f);
-    }
 }
 
 void WaveformComponent::paint(juce::Graphics& g)
@@ -35,33 +24,55 @@ void WaveformComponent::paint(juce::Graphics& g)
     g.setColour(juce::Colour(0xff2d3748));
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1), 8.0f, 1.0f);
 
-    // Draw animated wave bars with solid color
-    const float barWidth     = 3.0f;
-    const float gap          = 2.0f;
-    const float totalBarArea = (barWidth + gap) * numBars - gap;
-    const float startX       = (getWidth() - totalBarArea) * 0.5f;
-    const float maxBarHeight = getHeight() * 0.6f;
-    const float centerY      = getHeight() * 0.5f;
+    const float width   = static_cast<float>(getWidth());
+    const float height  = static_cast<float>(getHeight());
+    const float centerY = height * 0.5f;
+    const float margin  = 15.0f;
 
-    // Use solid blue color for bars
-    g.setColour(juce::Colour(0xff4299e1));
-
-    for (int i = 0; i < numBars; ++i)
+    // Draw waveform from audio buffer
+    if (!audioBuffer.empty())
     {
-        const float x         = startX + i * (barWidth + gap);
-        const float barHeight = maxBarHeight * barHeights[static_cast<size_t>(i)];
-        const float y         = centerY - barHeight * 0.5f;
+        g.setColour(juce::Colour(0xff4299e1));
 
-        juce::Rectangle<float> bar(x, y, barWidth, barHeight);
-        g.fillRoundedRectangle(bar, 1.0f);
+        juce::Path  waveformPath;
+        const float samplesPerPixel = static_cast<float>(audioBuffer.size()) / (width - 2 * margin);
+        bool        pathStarted     = false;
+
+        for (float x = margin; x < width - margin; x += 1.0f)
+        {
+            const int sampleIndex = static_cast<int>((x - margin) * samplesPerPixel);
+            if (sampleIndex >= 0 && sampleIndex < static_cast<int>(audioBuffer.size()))
+            {
+                // Scale audio sample (-1 to 1) to display coordinates
+                const float sample = audioBuffer[static_cast<size_t>(sampleIndex)];
+                const float y      = centerY - (sample * height * 0.3f); // Use 30% of height for waveform
+
+                if (!pathStarted)
+                {
+                    waveformPath.startNewSubPath(x, y);
+                    pathStarted = true;
+                }
+                else
+                {
+                    waveformPath.lineTo(x, y);
+                }
+            }
+        }
+
+        g.strokePath(waveformPath, juce::PathStrokeType(1.5f));
     }
 
-    // Draw threshold line with solid color
-    const float thresholdY = getHeight() * 0.2f + (1.0f - currentThreshold) * getHeight() * 0.6f;
-    const float margin     = 15.0f;
+    // Draw threshold lines (positive and negative)
+    const float thresholdY_pos = centerY - (currentThreshold * height * 0.3f);
+    const float thresholdY_neg = centerY + (currentThreshold * height * 0.3f);
 
     g.setColour(juce::Colour(0xfff56565));
-    g.fillRect(margin, thresholdY - 1.0f, getWidth() - 2 * margin, 2.0f);
+    g.fillRect(margin, thresholdY_pos - 1.0f, width - 2 * margin, 2.0f);
+    g.fillRect(margin, thresholdY_neg - 1.0f, width - 2 * margin, 2.0f);
+
+    // Draw center line (0 amplitude)
+    g.setColour(juce::Colour(0x404299e1));
+    g.fillRect(margin, centerY - 0.5f, width - 2 * margin, 1.0f);
 }
 
 void WaveformComponent::resized()
@@ -75,15 +86,30 @@ void WaveformComponent::setThreshold(float threshold)
     repaint();
 }
 
+void WaveformComponent::pushAudioData(const float* audioData, int numSamples)
+{
+    // Add new samples to the buffer
+    for (int i = 0; i < numSamples; ++i)
+    {
+        audioBuffer.push_back(audioData[i]);
+    }
+
+    // Keep buffer size under control
+    while (static_cast<int>(audioBuffer.size()) > maxBufferSize)
+    {
+        audioBuffer.erase(audioBuffer.begin());
+    }
+
+    bufferNeedsUpdate = true;
+}
+
 void WaveformComponent::timerCallback()
 {
-    // Animate the bars
-    for (auto& height : barHeights)
+    // Repaint if buffer has been updated
+    if (bufferNeedsUpdate.exchange(false))
     {
-        height += (juce::Random::getSystemRandom().nextFloat() - 0.5f) * 0.1f;
-        height = juce::jlimit(0.1f, 1.0f, height);
+        repaint();
     }
-    repaint();
 }
 
 //==============================================================================
@@ -235,12 +261,22 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     setResizable(true, true);
     setResizeLimits(300, 400, 600, 750);
 
+    // Register with processor for audio data
+    processorRef.setEditor(this);
+
     startTimerHz(30);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 {
+    // Unregister from processor
+    processorRef.removeEditor();
     setLookAndFeel(nullptr);
+}
+
+void AudioPluginAudioProcessorEditor::pushAudioData(const float* audioData, int numSamples)
+{
+    waveformComponent.pushAudioData(audioData, numSamples);
 }
 
 void AudioPluginAudioProcessorEditor::timerCallback()

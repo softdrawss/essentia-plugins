@@ -4,6 +4,9 @@
 #include <essentia/algorithmfactory.h>
 #include <essentia/essentiamath.h>
 
+// Forward declaration
+class AudioPluginAudioProcessorEditor;
+
 //==============================================================================
 class AudioPluginAudioProcessor final : public juce::AudioProcessor
 {
@@ -50,6 +53,9 @@ public:
 
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
 
+    void setEditor(juce::AudioProcessorEditor* editor);
+    void removeEditor();
+
 private:
     juce::AudioProcessorValueTreeState                  apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters() const;
@@ -59,6 +65,8 @@ private:
     std::vector<essentia::Real>    inBuffer;
     essentia::Real                 zeroCrossingThreshold{0.f};
     essentia::Real                 zeroCrossingValue{0.f};
+
+    juce::AudioProcessorEditor* currentEditor{nullptr};
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };

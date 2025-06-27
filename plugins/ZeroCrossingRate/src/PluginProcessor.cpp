@@ -183,6 +183,16 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, j
 
     // run algorithm
     zeroCrossingAlg->compute();
+
+    // Pass audio data to editor for waveform visualization
+    if (currentEditor != nullptr)
+    {
+        auto* pluginEditor = dynamic_cast<AudioPluginAudioProcessorEditor*>(currentEditor);
+        if (pluginEditor != nullptr)
+        {
+            pluginEditor->pushAudioData(read, n);
+        }
+    }
 }
 
 //==============================================================================
@@ -216,6 +226,18 @@ void AudioPluginAudioProcessor::setStateInformation(const void* data, int sizeIn
         // Make sure to update our local threshold value after state is restored
         updateParameters();
     }
+}
+
+//==============================================================================
+// This creates new instances of the plugin..
+void AudioPluginAudioProcessor::setEditor(juce::AudioProcessorEditor* editor)
+{
+    currentEditor = editor;
+}
+
+void AudioPluginAudioProcessor::removeEditor()
+{
+    currentEditor = nullptr;
 }
 
 //==============================================================================

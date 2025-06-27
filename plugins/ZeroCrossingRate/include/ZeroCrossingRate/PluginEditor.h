@@ -13,14 +13,15 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
     void setThreshold(float threshold);
+    void pushAudioData(const float* audioData, int numSamples);
 
 private:
     void timerCallback() override;
-    void generateBars();
 
-    std::vector<float>   barHeights;
+    std::vector<float>   audioBuffer;
     float                currentThreshold = 0.35f;
-    static constexpr int numBars          = 60;
+    static constexpr int maxBufferSize    = 1024; // Samples to display
+    std::atomic<bool>    bufferNeedsUpdate{false};
 };
 
 //==============================================================================
@@ -63,6 +64,7 @@ public:
     //==============================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
+    void pushAudioData(const float* audioData, int numSamples);
 
 private:
     // This reference is provided as a quick way for your editor to
