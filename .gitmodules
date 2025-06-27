@@ -1,0 +1,7 @@
+[submodule "external/essentia"]
+	path = external/essentia
+	url = https://github.com/MTG/essentia.git
+	branch = master
+[submodule "external/JUCE"]
+	path = external/JUCE
+	url = https://github.com/juce-framework/JUCE.git

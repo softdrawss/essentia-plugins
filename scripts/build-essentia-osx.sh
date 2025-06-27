@@ -1,35 +1,77 @@
 #!/bin/bash
-# Building essentia library on the build directory
+# Script to build the Essentia library in the build directory.
+#
+# Prerequisites:
+# - Ensure all Essentia dependencies are installed prior to running this script.
+# - Python dependencies are not required for this build process.
+#
+# For more information on installing dependencies, refer to:
+# https://essentia.upf.edu/installing.html#installing-dependencies-on-macos
+#
+# This script uses the Waf build system. For detailed documentation on Waf, visit:
+# https://waf.io/book/
 
-# It is supposed you have already essentia dependencies before installed. Python dependencies are not needed for this build.
-# Check here for more information: https://essentia.upf.edu/installing.html#installing-dependencies-on-macos
+set -euo pipefail # safer bash
+IFS=$'\n\t'
 
-# define the script directory
-SCRIPT_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+# ――― Helpers ――― ------------------------------------------------------------
+EXEC_CMDS=() # collects the commands we run
 
-# Load .env directories
-set -a && source .env && set +a
+run() {
+  # Build a single‑line, shell‑quoted version of the command
+  local cmd_str
+  printf -v cmd_str '%q ' "$@" # quote+join with spaces
+  cmd_str=${cmd_str% }         # trim trailing space
 
-# TODO: reuse .env paths, make all relative to ESSENTIA_DIR
-ROOT_DIR="${SCRIPT_DIR}/../"
-BUILD_DIR="${ROOT_DIR}${BUILD_DIR}"
+  echo ">> $cmd_str"      # one‑liner marker in log
+  EXEC_CMDS+=("$cmd_str") # remember for the summary
+  "$@"                    # execute the command
+}
 
-# Change to essentia directory to avoid wscript file error
-cd $ESSENTIA_DIR
+# ――― Locate project root ――― ------------------------------------------------
+SCRIPT_DIR="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-## Build essentia as an static library
+# ――― Define configuration (previously in .env file) ――― ---------------------
+EXTERNAL_DIR=external
+ESSENTIA_DIR=${EXTERNAL_DIR}/essentia
 
-# TODO: define Linux and OSX command if needed
+# ――― Resolve paths ――― ------------------------------------------------------
+ESSENTIA_PATH="$PROJECT_DIR/$ESSENTIA_DIR"
+BUILD_PATH="$ESSENTIA_PATH/build"
+INSTALL_PATH="$PROJECT_DIR/build_external/install"
 
-# Configure the installation
-config_cmd="python3 waf configure \
---build-static \
---lightweight= \
---out=${BUILD_DIR}"
-echo $config_cmd
-eval $config_cmd
+# ――― Build steps ――― --------------------------------------------------------
+echo "Building Essentia from: $ESSENTIA_PATH"
+echo "Output directory      : $BUILD_PATH"
+echo "Install directory     : $INSTALL_PATH"
+mkdir -p "$BUILD_PATH"
+cd "$ESSENTIA_PATH"
 
-# Run the installation
-install_cmd="python3 waf -v && python3 waf install"
-echo $install_cmd
-eval $install_cmd
+echo "Configuring Essentia build…"
+run python3 waf configure \
+  --build-static \
+  --static-dependencies \
+  --lightweight= \
+  --out="$BUILD_PATH" \
+  --prefix="$INSTALL_PATH"
+
+echo "Building and installing Essentia…"
+run python3 waf build --progress
+run python3 waf install --progress
+
+echo "Essentia build completed successfully!"
+
+# Summary (paths + executed commands)
+printf '\n%s\n' '---------- Build summary ----------'
+printf 'Essentia source : %s\n' "$ESSENTIA_PATH"
+printf 'Build directory : %s\n' "$BUILD_PATH"
+printf 'Install prefix  : %s\n' "$INSTALL_PATH"
+printf '\nCommands executed (%d):\n' "${#EXEC_CMDS[@]}"
+for cmd in "${EXEC_CMDS[@]}"; do
+  printf '  %s\n' "$cmd"
+done
+printf '%s\n' '---------- End of summary ----------'
