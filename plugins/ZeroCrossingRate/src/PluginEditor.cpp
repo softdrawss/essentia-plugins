@@ -1,5 +1,5 @@
 #include "ZeroCrossingRate/PluginEditor.h"
-#include "ZeroCrossingRate/PluginProcessor.h"
+#include <juce_core/juce_core.h>
 
 //==============================================================================
 // WaveformComponent Implementation
@@ -325,42 +325,42 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
     g.setColour(juce::Colour(0xff3a4553));
     g.drawRoundedRectangle(resultBounds, 12.0f, 1.0f);
 
-    // Draw UPF logo in footer area (left side) - optimized positioning
+    // Footer layout with consistent positioning
+    // Define footer layout constants for easy maintenance
+    const float footerBaselineFromBottom = 60.0f; // Distance from container bottom to logo baseline
+    const float footerSideMargin         = 20.0f; // Margin from container edges
+    const float standardLogoHeight       = 38.0f; // Standard height for visual consistency
+
+    // Draw UPF logo (left side)
     if (upfLogo.isValid())
     {
-        const float logoHeight = 37.4527f;
-        const float logoWidth  = upfLogo.getWidth() * (logoHeight / upfLogo.getHeight());
-        const int   logoX      = static_cast<int>(containerBounds.getX() + 13.0545f);
-        const int   logoY      = static_cast<int>(containerBounds.getBottom() - 47.0076f);
+        const float upfLogoWidth = upfLogo.getWidth() * (standardLogoHeight / upfLogo.getHeight());
+        const int   upfLogoX     = static_cast<int>(containerBounds.getX() + footerSideMargin);
+        const int   upfLogoY     = static_cast<int>(containerBounds.getBottom() - footerBaselineFromBottom);
 
         g.drawImage(upfLogo,
-                    logoX,
-                    logoY,
-                    static_cast<int>(logoWidth),
-                    static_cast<int>(logoHeight),
+                    upfLogoX,
+                    upfLogoY,
+                    static_cast<int>(upfLogoWidth),
+                    static_cast<int>(standardLogoHeight),
                     0,
                     0,
                     upfLogo.getWidth(),
                     upfLogo.getHeight());
     }
 
-    // Draw Essentia logo in footer area (right side, below "powered by" text)
-    // Optimized positioning and sizing
+    // Draw Essentia logo (right side, aligned on same baseline)
     if (essentiaLogo.isValid())
     {
-        const float essentiaLogoHeight = 41.0498f;
-        const float essentiaLogoWidth  = essentiaLogo.getWidth() * (essentiaLogoHeight / essentiaLogo.getHeight());
-
-        // Center the logo+text group on the right side
-        const float groupCenterX  = containerBounds.getRight() - 67.6035f;
-        const int   essentiaLogoX = static_cast<int>(groupCenterX - essentiaLogoWidth * 0.5f);
-        const int   essentiaLogoY = static_cast<int>(containerBounds.getBottom() - 47.5474f);
+        const float essentiaLogoWidth = essentiaLogo.getWidth() * (standardLogoHeight / essentiaLogo.getHeight());
+        const int   essentiaLogoX = static_cast<int>(containerBounds.getRight() - footerSideMargin - essentiaLogoWidth);
+        const int   essentiaLogoY = static_cast<int>(containerBounds.getBottom() - footerBaselineFromBottom);
 
         g.drawImage(essentiaLogo,
                     essentiaLogoX,
                     essentiaLogoY,
                     static_cast<int>(essentiaLogoWidth),
-                    static_cast<int>(essentiaLogoHeight),
+                    static_cast<int>(standardLogoHeight),
                     0,
                     0,
                     essentiaLogo.getWidth(),
@@ -388,6 +388,14 @@ void AudioPluginAudioProcessorEditor::resized()
     thresholdValueLabel.setBoundsRelative(0.5f, 0.65f, 0.4f, 0.05f);
     thresholdSlider.setBoundsRelative(0.1f, 0.72f, 0.8f, 0.06f);
 
-    // Footer section (10% of height) - "powered by" text optimized positioning
-    poweredByLabel.setBoundsRelative(0.72f, 0.79141f, 0.24f, 0.158919f);
+    // Position "powered by" text above Essentia logo - simplified positioning
+    const float logoHeight   = 38.0f;
+    const float logoBaseline = 25.0f;
+    const float textGap      = 15.0f;
+
+    poweredByLabel.setBounds(
+        getWidth() - 120,                                                         // 120px from right edge
+        static_cast<int>(getHeight() - logoBaseline - logoHeight - textGap - 12), // Above logo with gap
+        80,                                                                       // Text width
+        12);                                                                      // Text height
 }
