@@ -212,7 +212,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     addAndMakeVisible(zcrValueLabel);
 
     // Setup ZCR unit label
-    zcrUnitLabel.setText("ZERO CROSSINGS PER SECOND", juce::dontSendNotification);
+    zcrUnitLabel.setText("Zero-Crossing Rate", juce::dontSendNotification);
     zcrUnitLabel.setFont(juce::FontOptions(14.0f));
     zcrUnitLabel.setColour(juce::Label::textColourId, juce::Colour(0xffa0aec0));
     zcrUnitLabel.setJustificationType(juce::Justification::centred);
@@ -324,17 +324,17 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
     g.drawRoundedRectangle(resultBounds, 12.0f, 1.0f);
 
     // Footer layout with consistent positioning
-    // Define footer layout constants for easy maintenance
-    const float footerBaselineFromBottom = 60.0f; // Distance from container bottom to logo baseline
-    const float footerSideMargin         = 20.0f; // Margin from container edges
-    const float standardLogoHeight       = 38.0f; // Standard height for visual consistency
+    // JUCE Live Constants for footer positioning - adjust these in real-time
+    const float footerBaseline     = 25.0f;
+    const float footerSideMargin   = 20.0f;
+    const float standardLogoHeight = 38.0f;
 
     // Draw UPF logo (left side)
     if (upfLogo.isValid())
     {
         const float upfLogoWidth = upfLogo.getWidth() * (standardLogoHeight / upfLogo.getHeight());
         const int   upfLogoX     = static_cast<int>(containerBounds.getX() + footerSideMargin);
-        const int   upfLogoY     = static_cast<int>(containerBounds.getBottom() - footerBaselineFromBottom);
+        const int   upfLogoY     = static_cast<int>(containerBounds.getBottom() - footerBaseline - standardLogoHeight);
 
         g.drawImage(upfLogo,
                     upfLogoX,
@@ -352,7 +352,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
     {
         const float essentiaLogoWidth = essentiaLogo.getWidth() * (standardLogoHeight / essentiaLogo.getHeight());
         const int   essentiaLogoX = static_cast<int>(containerBounds.getRight() - footerSideMargin - essentiaLogoWidth);
-        const int   essentiaLogoY = static_cast<int>(containerBounds.getBottom() - footerBaselineFromBottom);
+        const int   essentiaLogoY = static_cast<int>(containerBounds.getBottom() - footerBaseline - standardLogoHeight);
 
         g.drawImage(essentiaLogo,
                     essentiaLogoX,
@@ -368,28 +368,38 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 
 void AudioPluginAudioProcessorEditor::resized()
 {
+    // Fixed layout values
+    const float titleY           = 0.05f;
+    const float subtitleY        = 0.12f;
+    const float waveformY        = 0.18f;
+    const float waveformHeight   = 0.2f;
+    const float zcrValueY        = 0.42f;
+    const float zcrUnitY         = 0.50f;
+    const float thresholdLabelY  = 0.65f;
+    const float thresholdSliderY = 0.72f;
+    const float footerBaseline   = 25.0f;
+    const float footerTextGap    = 5.4f;
+
     // Use setBoundsRelative for scalable layout
-
-    // Header section (15% of height)
-    titleLabel.setBoundsRelative(0.0f, 0.02f, 1.0f, 0.08f);
-    subtitleLabel.setBoundsRelative(0.0f, 0.10f, 1.0f, 0.04f);
-
-    // Waveform section (20% of height)
-    waveformComponent.setBoundsRelative(0.05f, 0.18f, 0.9f, 0.18f);
-
-    // Result display section (15% of height)
-    zcrValueLabel.setBoundsRelative(0.1f, 0.42f, 0.8f, 0.08f);
-    zcrUnitLabel.setBoundsRelative(0.1f, 0.50f, 0.8f, 0.03f);
-
-    // Threshold control section (20% of height)
-    thresholdLabel.setBoundsRelative(0.1f, 0.65f, 0.4f, 0.05f);
-    thresholdValueLabel.setBoundsRelative(0.5f, 0.65f, 0.4f, 0.05f);
-    thresholdSlider.setBoundsRelative(0.1f, 0.72f, 0.8f, 0.06f);
+    titleLabel.setBoundsRelative(0.0f, titleY, 1.0f, 0.08f);       // Fixed height for centered title
+    subtitleLabel.setBoundsRelative(0.0f, subtitleY, 1.0f, 0.04f); // Fixed height for centered subtitle
+    waveformComponent.setBoundsRelative(0.05f, waveformY, 0.9f, waveformHeight);
+    zcrValueLabel.setBoundsRelative(0.1f, zcrValueY, 0.8f, 0.08f);        // Fixed height for centered ZCR value
+    zcrUnitLabel.setBoundsRelative(0.1f, zcrUnitY, 0.8f, 0.03f);          // Fixed height for centered ZCR unit
+    thresholdLabel.setBoundsRelative(0.1f, thresholdLabelY, 0.4f, 0.05f); // Fixed height for centered threshold label
+    thresholdValueLabel.setBoundsRelative(0.5f,
+                                          thresholdLabelY,
+                                          0.4f,
+                                          0.05f); // Fixed height for centered threshold value
+    thresholdSlider.setBoundsRelative(0.1f,
+                                      thresholdSliderY,
+                                      0.8f,
+                                      0.06f); // Fixed height for centered threshold slider
 
     // Position "powered by" text above Essentia logo - simplified positioning
     const float logoHeight   = 38.0f;
-    const float logoBaseline = 25.0f;
-    const float textGap      = 15.0f;
+    const float logoBaseline = footerBaseline;
+    const float textGap      = footerTextGap;
 
     poweredByLabel.setBounds(
         getWidth() - 120,                                                         // 120px from right edge
