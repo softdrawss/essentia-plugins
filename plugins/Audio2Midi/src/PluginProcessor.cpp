@@ -46,7 +46,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginAudioProcessor::c
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("minFrequency",
                                                            "Minimum Frequency",
-                                                           juce::NormalisableRange<float>(10.0f, 20000.0f, 1.0f, 0.1f),
+                                                           juce::NormalisableRange<float>(20.0f, 20000.0f, 1.0f, 0.1f),
                                                            60.0f,
                                                            "Hz"));
     layout.add(std::make_unique<juce::AudioParameterFloat>("maxFrequency",
@@ -79,6 +79,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginAudioProcessor::c
                                                           "Apply Time Compensation",
                                                           false,
                                                           "Boolean"));
+    layout.add(std::make_unique<juce::AudioParameterBool>("reloadAlgorithm", "Reload Algorithm", false, "Button"));
     return layout;
 }
 
@@ -153,26 +154,27 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
     juce::ignoreUnused(sampleRate, samplesPerBlock);
     essentia::init();
 
-    auto& factory = essentia::standard::AlgorithmFactory::instance();
+    // Validate parameters
+    if (sampleRate <= 0 || samplesPerBlock <= 0)
+    {
+        DBG("Invalid audio parameters: sampleRate=" + juce::String(sampleRate) +
+            ", samplesPerBlock=" + juce::String(samplesPerBlock));
+        return;
+    }
 
-    // initialize algorithms: audio2Midi and energy
-    audio2midi = factory.create("Audio2Midi", "hopSize", samplesPerBlock, "sampleRate", sampleRate);
+    // Resize the essentia buffer to avoid allocations during processing
+    inputFrame.clear();
+    inputFrame.resize(static_cast<std::size_t>(samplesPerBlock));
 
-    // connect buffer to algorithms
-    // connecting audio2midi
-    audio2midi->input("frame").set(inputFrame);
-    audio2midi->output("pitch").set(pitch);
-    audio2midi->output("loudness").set(rms);
-    audio2midi->output("messageType").set(messageType);
-    audio2midi->output("midiNoteNumber").set(midiNoteNumber);
-    audio2midi->output("timeCompensation").set(timeCompensation);
+    // Create the Audio2Midi algorithm with default parameters
+    if (!createAudio2MidiAlgorithm(samplesPerBlock, sampleRate, false))
+    {
+        DBG("Failed to initialize Audio2Midi algorithm in prepareToPlay");
+        return;
+    }
 
     /*DBG("sampleRate: " + juce::String(sampleRate));
     DBG("samplesPerBlock: " + juce::String(samplesPerBlock));*/
-
-    // resize the essentia buffer to avoid allocations during the processing
-    inputFrame.clear();
-    inputFrame.resize(static_cast<std::size_t>(samplesPerBlock));
 
     msPerSample = 1000 / sampleRate;
     mSampleRate = sampleRate;
@@ -182,7 +184,11 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
 
 void AudioPluginAudioProcessor::releaseResources()
 {
-    audio2midi = nullptr;
+    if (audio2midi != nullptr)
+    {
+        delete audio2midi;
+        audio2midi = nullptr;
+    }
     essentia::shutdown();
 }
 
@@ -215,52 +221,137 @@ void AudioPluginAudioProcessor::updateParameters()
     if (audio2midi == nullptr)
         return;
 
-    // Defaults (static, what declareParameters() registered)
-    const auto& def = audio2midi->defaultParameters();
-    DBG("---- Audio2Midi default values ----");
-    DBG("minFrequency           : " + juce::String(def["minFrequency"].toReal()));
-    DBG("maxFrequency           : " + juce::String(def["maxFrequency"].toReal()));
-    DBG("tuningFrequency        : " + juce::String(def["tuningFrequency"].toInt()));
-    DBG("pitchConfThreshold     : " + juce::String(def["pitchConfidenceThreshold"].toReal()));
-    DBG("loudnessThreshold (dB) : " + juce::String(def["loudnessThreshold"].toReal()));
-    DBG("transpositionAmount    : " + juce::String(def["transpositionAmount"].toInt()));
-    DBG("applyTimeCompensation  : " + juce::String(def["applyTimeCompensation"].toBool() ? "true" : "false"));
+    // Check if reload button was pressed
+    bool shouldReload = *apvts.getRawParameterValue("reloadAlgorithm") > 0.5f;
+    if (shouldReload)
+    {
+        // Reset the button parameter back to false
+        apvts.getParameter("reloadAlgorithm")->setValueNotifyingHost(0.0f);
+        reloadAlgorithm();
+        return;
+    }
 
-    // Current values (after any configure() calls you made)
-    DBG("---- Audio2Midi CURRENT values ----");
-    DBG("minFrequency           : " + juce::String(audio2midi->parameter("minFrequency").toReal()));
-    DBG("maxFrequency           : " + juce::String(audio2midi->parameter("maxFrequency").toReal()));
-    DBG("tuningFrequency        : " + juce::String(audio2midi->parameter("tuningFrequency").toInt()));
-    DBG("pitchConfThreshold     : " + juce::String(audio2midi->parameter("pitchConfidenceThreshold").toReal()));
-    DBG("loudnessThreshold (dB) : " + juce::String(audio2midi->parameter("loudnessThreshold").toReal()));
-    DBG("transpositionAmount    : " + juce::String(audio2midi->parameter("transpositionAmount").toInt()));
-    DBG("applyTimeCompensation  : " +
-        juce::String(audio2midi->parameter("applyTimeCompensation").toBool() ? "true" : "false"));
+    // // Configure the algorithm with new parameter values
+    // audio2midi->configure("minFrequency",
+    //                       minFrequency,
+    //                       "maxFrequency",
+    //                       maxFrequency,
+    //                       "tuningFrequency",
+    //                       static_cast<int>(tuningFrequency),
+    //                       "pitchConfidenceThreshold",
+    //                       pitchConfidenceThreshold,
+    //                       "loudnessThreshold",
+    //                       loudnessThreshold,
+    //                       "transpositionAmount",
+    //                       transpositionAmount,
+    //                       "applyTimeCompensation",
+    //                       applyTimeCompensation);
+}
 
-    // Get current parameter values from apvts
-    float minFrequency             = *apvts.getRawParameterValue("minFrequency");
-    float maxFrequency             = *apvts.getRawParameterValue("maxFrequency");
-    float tuningFrequency          = *apvts.getRawParameterValue("tuningFrequency");
-    float pitchConfidenceThreshold = *apvts.getRawParameterValue("pitchConfidenceThreshold");
-    float loudnessThreshold        = *apvts.getRawParameterValue("loudnessThreshold");
-    int   transpositionAmount      = *apvts.getRawParameterValue("transpositionAmount");
-    bool  applyTimeCompensation    = *apvts.getRawParameterValue("applyTimeCompensation");
+void AudioPluginAudioProcessor::reloadAlgorithm()
+{
+    // Properly clean up current algorithm
+    if (audio2midi != nullptr)
+    {
+        delete audio2midi;
+        audio2midi = nullptr;
+    }
 
-    // Configure the algorithm with new parameter values
-    audio2midi->configure("minFrequency",
-                          minFrequency,
-                          "maxFrequency",
-                          maxFrequency,
-                          "tuningFrequency",
-                          static_cast<int>(tuningFrequency),
-                          "pitchConfidenceThreshold",
-                          pitchConfidenceThreshold,
-                          "loudnessThreshold",
-                          loudnessThreshold,
-                          "transpositionAmount",
-                          transpositionAmount,
-                          "applyTimeCompensation",
-                          applyTimeCompensation);
+    // Clear and prepare input frame
+    int currentSamplesPerBlock = static_cast<int>(inputFrame.size());
+    if (currentSamplesPerBlock <= 0)
+    {
+        currentSamplesPerBlock = 512; // fallback to reasonable default
+    }
+    double currentSampleRate = mSampleRate;
+    if (currentSampleRate <= 0)
+    {
+        currentSampleRate = 44100.0; // fallback to reasonable default
+    }
+
+    inputFrame.clear();
+    inputFrame.resize(static_cast<std::size_t>(currentSamplesPerBlock));
+
+    // Create new algorithm with current parameters
+    if (createAudio2MidiAlgorithm(currentSamplesPerBlock, currentSampleRate, true))
+    {
+        DBG("Audio2Midi algorithm reloaded successfully");
+    }
+    else
+    {
+        DBG("Failed to reload Audio2Midi algorithm");
+    }
+}
+
+bool AudioPluginAudioProcessor::createAudio2MidiAlgorithm(int    samplesPerBlock,
+                                                          double sampleRate,
+                                                          bool   useCurrentParameters)
+{
+    auto& factory = essentia::standard::AlgorithmFactory::instance();
+
+    try
+    {
+        if (useCurrentParameters)
+        {
+            // Get current parameter values
+            float minFreq = juce::jlimit(20.0f, 20000.0f, (float) *apvts.getRawParameterValue("minFrequency"));
+            float maxFreq =
+                juce::jlimit(minFreq + 10.0f, 20000.0f, (float) *apvts.getRawParameterValue("maxFrequency"));
+            float tuningFreq      = *apvts.getRawParameterValue("tuningFrequency");
+            float pitchConfidence = *apvts.getRawParameterValue("pitchConfidenceThreshold");
+            float loudnessThresh  = *apvts.getRawParameterValue("loudnessThreshold");
+            int   transposition   = static_cast<int>(*apvts.getRawParameterValue("transpositionAmount"));
+            bool  applyTimeComp   = *apvts.getRawParameterValue("applyTimeCompensation") > 0.5f;
+
+            // Create algorithm with all parameters
+            audio2midi = factory.create("Audio2Midi",
+                                        "hopSize",
+                                        samplesPerBlock,
+                                        "sampleRate",
+                                        static_cast<int>(sampleRate),
+                                        "minFrequency",
+                                        minFreq,
+                                        "maxFrequency",
+                                        maxFreq,
+                                        "tuningFrequency",
+                                        static_cast<int>(tuningFreq),
+                                        "pitchConfidenceThreshold",
+                                        pitchConfidence,
+                                        "loudnessThreshold",
+                                        loudnessThresh,
+                                        "transpositionAmount",
+                                        transposition,
+                                        "applyTimeCompensation",
+                                        applyTimeComp);
+        }
+        else
+        {
+            // Create algorithm with default parameters (for initial setup)
+            audio2midi = factory.create("Audio2Midi", "hopSize", samplesPerBlock, "sampleRate", sampleRate);
+        }
+
+        // Connect inputs and outputs
+        audio2midi->input("frame").set(inputFrame);
+        audio2midi->output("pitch").set(pitch);
+        audio2midi->output("loudness").set(rms);
+        audio2midi->output("messageType").set(messageType);
+        audio2midi->output("midiNoteNumber").set(midiNoteNumber);
+        audio2midi->output("timeCompensation").set(timeCompensation);
+
+        return true;
+    }
+    catch (const std::exception& e)
+    {
+        DBG("Failed to create Audio2Midi algorithm: " + juce::String(e.what()));
+        audio2midi = nullptr;
+        return false;
+    }
+    catch (...)
+    {
+        DBG("Failed to create Audio2Midi algorithm: unknown exception");
+        audio2midi = nullptr;
+        return false;
+    }
 }
 
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -306,7 +397,30 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, j
         inputFrame.push_back(sample);
     }
 
-    audio2midi->compute();
+    // Safety check before calling compute
+    if (audio2midi == nullptr)
+    {
+        DBG("Audio2Midi algorithm is null, skipping processing");
+        inputFrame.clear();
+        return;
+    }
+
+    try
+    {
+        audio2midi->compute();
+    }
+    catch (const std::exception& e)
+    {
+        DBG("Audio2Midi compute failed: " + juce::String(e.what()));
+        inputFrame.clear();
+        return;
+    }
+    catch (...)
+    {
+        DBG("Audio2Midi compute failed with unknown exception");
+        inputFrame.clear();
+        return;
+    }
 
     // TODO: check the issue we have with MIDI noise and the high performance it needs for small
     // blocks this is just to provide output when it is playing and mute when it is stopped
