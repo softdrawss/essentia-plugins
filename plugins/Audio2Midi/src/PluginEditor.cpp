@@ -268,17 +268,17 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     timeCompensationAttachment.reset(new juce::AudioProcessorValueTreeState::ButtonAttachment(processorRef.getAPVTS(),
                                                                                               "applyTimeCompensation",
                                                                                               timeCompensationToggle));
-    
+
     // Handle reload button click manually instead of using ButtonAttachment
     reloadButton.onClick = [this]() {
         // Change button appearance to show it's processing
         reloadButton.setButtonText("UPDATING...");
         reloadButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff718096)); // Gray
         reloadButton.setEnabled(false); // Disable button during processing
-        
+
         // Set the parameter to true to trigger reload
         processorRef.getAPVTS().getParameter("reloadAlgorithm")->setValueNotifyingHost(1.0f);
-        
+
         isReloading = true;
     };
 
@@ -294,7 +294,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     addAndMakeVisible(poweredByLabel);
 
     // Set plugin size
-    setSize(600, 700);
+    setSize(600, 780);
     setResizable(false, false);
 
     // Start timer for updates
@@ -362,7 +362,7 @@ void AudioPluginAudioProcessorEditor::timerCallback()
     updateValueLabel(pitchConfidenceValueLabel, static_cast<float>(pitchConfidenceSlider.getValue()), "", 2);
     updateValueLabel(loudnessThresholdValueLabel, static_cast<float>(loudnessThresholdSlider.getValue()), " dB", 1);
     updateValueLabel(transpositionValueLabel, static_cast<float>(transpositionSlider.getValue()), " Semitones");
-    
+
     // Check if reload is complete and restore button appearance
     if (isReloading)
     {
@@ -393,7 +393,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
     g.setColour(juce::Colour(0xff3a4553));
     g.drawRoundedRectangle(containerBounds, 16.0f, 1.0f);
 
-    // Draw group backgrounds
+    // Draw group backgrounds with proportional positioning
     const float groupMargin = 40.0f;
     const float groupRadius = 8.0f;
 
@@ -403,21 +403,21 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
                                            containerBounds.getWidth() - 2 * groupMargin,
                                            height);
 
-        g.setColour(juce::Colour(0xff1a202c).withAlpha(0.3f));
+        g.setColour(juce::Colour(0xff1a202c).withAlpha(0.5f));
         g.fillRoundedRectangle(groupBounds, groupRadius);
 
         g.setColour(juce::Colour(0xff3a4553));
         g.drawRoundedRectangle(groupBounds, groupRadius, 1.0f);
     };
 
-    // Draw group backgrounds
-    drawGroupBackground(110.0f, 120.0f); // Frequency range
-    drawGroupBackground(250.0f, 180.0f); // Tuning & detection
-    drawGroupBackground(450.0f, 100.0f); // MIDI processing
-    drawGroupBackground(570.0f, 50.0f);  // System
+    // Draw group backgrounds with fixed positions and proper heights
+    drawGroupBackground(90.0f, 75.0f);   // Frequency range
+    drawGroupBackground(190.0f, 160.0f); // Tuning & detection
+    drawGroupBackground(375.0f, 85.0f);  // MIDI processing
+    drawGroupBackground(485.0f, 55.0f);  // System
 
-    // Footer layout with logos
-    const float footerBaseline     = 25.0f;
+    // Footer layout with logos - MUCH more space at bottom
+    const float footerBaseline     = 50.0f; // Increased significantly
     const float footerSideMargin   = 20.0f;
     const float standardLogoHeight = 38.0f;
 
@@ -460,98 +460,102 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 
 void AudioPluginAudioProcessorEditor::resized()
 {
-    const int margin         = 60;
-    const int sliderHeight   = 25;
-    const int labelHeight    = 20;
-    const int groupSpacing   = 30;
-    const int controlSpacing = 8;
-    const int valueWidth     = 80;
+    const int totalWidth        = getWidth();
+    const int totalHeight       = getHeight();
+    const int margin            = 60;
+    const int sliderHeight      = 25;
+    const int labelHeight       = 20;
+    const int valueWidth        = 80;
+    const int groupTitleSpacing = 10;
+    const int controlSpacing    = 6;
+    const int sectionSpacing    = 25; // Space between sections
 
-    // Title and subtitle
-    titleLabel.setBounds(0, 40, getWidth(), 35);
-    subtitleLabel.setBounds(0, 75, getWidth(), 20);
+    // Header Section
+    titleLabel.setBounds(0, 25, totalWidth, 30);
+    subtitleLabel.setBounds(0, 55, totalWidth, 20);
 
-    int currentY = 120;
+    int currentY = 100;
 
-    // Frequency Range Group
+    // Section 1: Frequency Range
     frequencyGroupLabel.setBounds(margin, currentY, 200, labelHeight);
-    currentY += labelHeight + 15;
+    currentY += labelHeight + groupTitleSpacing;
 
-    // Min Frequency (side by side layout)
-    minFrequencyLabel.setBounds(margin, currentY, 140, labelHeight);
-    minFrequencyValueLabel.setBounds(margin + 280, currentY, valueWidth, labelHeight);
-    currentY += labelHeight + controlSpacing;
-    minFrequencySlider.setBounds(margin, currentY, 250, sliderHeight);
-    currentY += sliderHeight + controlSpacing;
+    // 2-column grid for frequency controls
+    const int columnWidth = (totalWidth - 2 * margin - 20) / 2;
+    const int column2X    = margin + columnWidth + 20;
 
-    // Max Frequency (side by side layout)
-    maxFrequencyLabel.setBounds(margin + 270, currentY - sliderHeight - controlSpacing - labelHeight, 140, labelHeight);
-    maxFrequencyValueLabel.setBounds(margin + 270 + 140,
-                                     currentY - sliderHeight - controlSpacing - labelHeight,
-                                     valueWidth,
-                                     labelHeight);
-    maxFrequencySlider.setBounds(margin + 270, currentY - sliderHeight, 250, sliderHeight);
-    currentY += groupSpacing;
+    // Min Frequency (Left column)
+    minFrequencyLabel.setBounds(margin, currentY, 120, labelHeight);
+    minFrequencyValueLabel.setBounds(margin + columnWidth - valueWidth, currentY, valueWidth, labelHeight);
+    minFrequencySlider.setBounds(margin, currentY + labelHeight + controlSpacing, columnWidth, sliderHeight);
 
-    // Tuning & Detection Group
+    // Max Frequency (Right column)
+    maxFrequencyLabel.setBounds(column2X, currentY, 120, labelHeight);
+    maxFrequencyValueLabel.setBounds(column2X + columnWidth - valueWidth, currentY, valueWidth, labelHeight);
+    maxFrequencySlider.setBounds(column2X, currentY + labelHeight + controlSpacing, columnWidth, sliderHeight);
+
+    currentY += labelHeight + controlSpacing + sliderHeight + sectionSpacing;
+
+    // Section 2: Tuning & Detection
     tuningGroupLabel.setBounds(margin, currentY, 200, labelHeight);
-    currentY += labelHeight + 15;
+    currentY += labelHeight + groupTitleSpacing;
 
     // Tuning Frequency
     tuningFrequencyLabel.setBounds(margin, currentY, 140, labelHeight);
-    tuningFrequencyValueLabel.setBounds(getWidth() - margin - valueWidth, currentY, valueWidth, labelHeight);
-    currentY += labelHeight + controlSpacing;
-    tuningFrequencySlider.setBounds(margin, currentY, getWidth() - 2 * margin, sliderHeight);
-    currentY += sliderHeight + controlSpacing;
+    tuningFrequencyValueLabel.setBounds(totalWidth - margin - valueWidth, currentY, valueWidth, labelHeight);
+    tuningFrequencySlider.setBounds(margin,
+                                    currentY + labelHeight + controlSpacing,
+                                    totalWidth - 2 * margin,
+                                    sliderHeight);
+    currentY += labelHeight + controlSpacing + sliderHeight + 15;
 
     // Pitch Confidence
     pitchConfidenceLabel.setBounds(margin, currentY, 140, labelHeight);
-    pitchConfidenceValueLabel.setBounds(getWidth() - margin - valueWidth, currentY, valueWidth, labelHeight);
-    currentY += labelHeight + controlSpacing;
-    pitchConfidenceSlider.setBounds(margin, currentY, getWidth() - 2 * margin, sliderHeight);
-    currentY += sliderHeight + controlSpacing;
+    pitchConfidenceValueLabel.setBounds(totalWidth - margin - valueWidth, currentY, valueWidth, labelHeight);
+    pitchConfidenceSlider.setBounds(margin,
+                                    currentY + labelHeight + controlSpacing,
+                                    totalWidth - 2 * margin,
+                                    sliderHeight);
+    currentY += labelHeight + controlSpacing + sliderHeight + 15;
 
     // Loudness Threshold
     loudnessThresholdLabel.setBounds(margin, currentY, 140, labelHeight);
-    loudnessThresholdValueLabel.setBounds(getWidth() - margin - valueWidth, currentY, valueWidth, labelHeight);
-    currentY += labelHeight + controlSpacing;
-    loudnessThresholdSlider.setBounds(margin, currentY, getWidth() - 2 * margin, sliderHeight);
-    currentY += sliderHeight + groupSpacing;
+    loudnessThresholdValueLabel.setBounds(totalWidth - margin - valueWidth, currentY, valueWidth, labelHeight);
+    loudnessThresholdSlider.setBounds(margin,
+                                      currentY + labelHeight + controlSpacing,
+                                      totalWidth - 2 * margin,
+                                      sliderHeight);
+    currentY += labelHeight + controlSpacing + sliderHeight + sectionSpacing;
 
-    // MIDI Processing Group
+    // Section 3: MIDI Processing
     midiGroupLabel.setBounds(margin, currentY, 200, labelHeight);
-    currentY += labelHeight + 15;
+    currentY += labelHeight + groupTitleSpacing;
 
     // Transposition
     transpositionLabel.setBounds(margin, currentY, 140, labelHeight);
-    transpositionValueLabel.setBounds(getWidth() - margin - valueWidth, currentY, valueWidth, labelHeight);
-    currentY += labelHeight + controlSpacing;
-    transpositionSlider.setBounds(margin, currentY, getWidth() - 2 * margin, sliderHeight);
-    currentY += sliderHeight + controlSpacing;
+    transpositionValueLabel.setBounds(totalWidth - margin - valueWidth, currentY, valueWidth, labelHeight);
+    transpositionSlider.setBounds(margin,
+                                  currentY + labelHeight + controlSpacing,
+                                  totalWidth - 2 * margin,
+                                  sliderHeight);
+    currentY += labelHeight + controlSpacing + sliderHeight + 15;
 
     // Time Compensation
     timeCompensationLabel.setBounds(margin, currentY, 140, labelHeight);
     timeCompensationToggle.setBounds(margin + 200, currentY, 200, labelHeight);
-    currentY += labelHeight + groupSpacing;
+    currentY += labelHeight + sectionSpacing;
 
-    // System Group
+    // Section 4: System
     systemGroupLabel.setBounds(margin, currentY, 200, labelHeight);
-    currentY += labelHeight + 15;
+    currentY += labelHeight + groupTitleSpacing;
 
     // Reload Button
     reloadButton.setBounds(margin, currentY, 150, 30);
-    currentY += 50;
+    currentY += 40;
 
-    // MIDI Visualization
-    midiVisualization.setBounds(margin, currentY, getWidth() - 2 * margin, 60);
+    // Remove MIDI Visualization to make more room
+    midiVisualization.setBounds(0, 0, 0, 0); // Hide it
 
-    // Position "powered by" text above Essentia logo
-    const float logoHeight   = 38.0f;
-    const float logoBaseline = 25.0f;
-    const float textGap      = 5.4f;
-
-    poweredByLabel.setBounds(getWidth() - 120,
-                             static_cast<int>(getHeight() - logoBaseline - logoHeight - textGap - 12),
-                             80,
-                             12);
+    // Position "powered by" text at the bottom
+    poweredByLabel.setBounds(totalWidth - 120, totalHeight - 45, 80, 12);
 }
