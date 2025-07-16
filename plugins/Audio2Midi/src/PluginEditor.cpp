@@ -410,11 +410,11 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
         g.drawRoundedRectangle(groupBounds, groupRadius, 1.0f);
     };
 
-    // Draw group backgrounds with fixed positions and proper heights
-    drawGroupBackground(90.0f, 75.0f);   // Frequency range
-    drawGroupBackground(190.0f, 160.0f); // Tuning & detection
-    drawGroupBackground(375.0f, 85.0f);  // MIDI processing
-    drawGroupBackground(485.0f, 55.0f);  // System
+    // Draw group backgrounds with corrected positions and heights
+    drawGroupBackground(93.0f, 100.0f);  // Frequency range
+    drawGroupBackground(200.0f, 230.0f); // Tuning & detection
+    drawGroupBackground(440.0f, 130.0f); // MIDI processing
+    drawGroupBackground(580.0f, 75.0f);  // System
 
     // Footer layout with logos - MUCH more space at bottom
     const float footerBaseline     = 50.0f; // Increased significantly
