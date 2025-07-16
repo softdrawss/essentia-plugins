@@ -80,6 +80,8 @@ endif()
 # ---- Sub‑projects ---------------------------------------------------------
 add_subdirectory(plugins/Energy)
 add_subdirectory(plugins/RMS)
+# add_subdirectory(plugins/Audio2Midi)
+add_subdirectory(plugins/ZeroCrossingRate)
 
 # enable_testing()
 # add_subdirectory(test)

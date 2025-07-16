@@ -109,17 +109,7 @@ void MyProcessor::releaseResources()
 
 ---
 
-## 4. Tips & gotchas
-
-* **Realtime safety** - the priming call in `prepareToPlay` prevents first-use heap allocations.
-* **Stereo** - analyse each channel or down-mix to mono before copying.
-* **Block vs. window** - Essentia *standard* algos accept arbitrary vector sizes. Only FFT-based ones care.
-* **Multiple algorithms** - repeat Steps (1)-(9), or encapsulate in a helper class.
-* **Debugging** - set `Algorithm::setDebugLevel(n)` for verbose output (0-3).
-
----
-
-## 5. Mini example: RMS meter
+## 4. Mini example: RMS meter
 
 ```cpp
 // Prepare (excerpt)
@@ -138,24 +128,3 @@ float dBFS = essentia::amp2db (rmsValue);
 ```
 
 Displays -3.01 dBFS for a full-scale sine wave.
-
----
-
-## 6. Performance considerations
-
-* Avoid creating/destroying algorithms during real-time processing
-* Pre-allocate all buffers during setup
-* Consider using the streaming API for complex processing chains
-* Profile your processor to ensure it doesn't exceed your target CPU usage
-
----
-
-## Appendix A: Moving to Essentia *Streaming* networks
-
-When you need hop-size based analysis (e.g. MFCC, pitch contours), use:
-
-1. `essentia::streaming::AlgorithmFactory`
-2. Build a network of streaming algorithms.
-3. Call `network.compute()` once per overlapped frame.
-
-The JUCE block must be split into windows before entering the network; that is outside the scope of this primer.
