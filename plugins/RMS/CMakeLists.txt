@@ -1,6 +1,13 @@
 project(RMSPlugin VERSION 0.1.0)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
+# Create binary data for assets
+juce_add_binary_data(RMSBinaryData
+    SOURCES
+        ../assets/upflogo.png
+        ../assets/essentia_logo.png
+)
+
 juce_add_plugin(
     ${PROJECT_NAME}
     COMPANY_NAME              "Music Technology Group"
@@ -37,6 +44,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
+        RMSBinaryData
         essentia
         Eigen3::Eigen
         juce::juce_audio_processors
