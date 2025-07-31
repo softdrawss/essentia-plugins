@@ -66,6 +66,8 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
     void pushAudioData(const float* audioData, int numSamples);
+    void mouseDown(const juce::MouseEvent& event) override;
+    void mouseMove(const juce::MouseEvent& event) override;
 
 private:
     // This reference is provided as a quick way for your editor to
@@ -95,6 +97,12 @@ private:
 
     // Additional label for "powered by" text
     juce::Label poweredByLabel;
+
+    // Easter egg method
+    void showDeveloperInfo();
+
+    // Hover state for title
+    bool titleHovered = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessorEditor)
 };

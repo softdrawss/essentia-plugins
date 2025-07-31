@@ -24,6 +24,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     titleLabel.setFont(juce::FontOptions(24.0f));
     titleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     titleLabel.setJustificationType(juce::Justification::centred);
+    // Allow mouse clicks to pass through to the editor
+    titleLabel.setInterceptsMouseClicks(false, false);
     addAndMakeVisible(titleLabel);
 
     // Setup subtitle label
@@ -211,4 +213,55 @@ void AudioPluginAudioProcessorEditor::resized()
                              static_cast<int>(getHeight() - logoBaseline - logoHeight - textGap - 10),
                              70,
                              10);
+}
+
+//==============================================================================
+// Easter egg implementation
+//==============================================================================
+void AudioPluginAudioProcessorEditor::mouseDown(const juce::MouseEvent& event)
+{
+    // Debug output
+    DBG("Mouse clicked at: " << event.getPosition().toString());
+    DBG("Title bounds: " << titleLabel.getBounds().toString());
+
+    // Check if the click is within the title label bounds
+    if (titleLabel.getBounds().contains(event.getPosition()))
+    {
+        DBG("Title clicked!");
+        showDeveloperInfo();
+    }
+
+    // Also call the base class to ensure proper handling
+    AudioProcessorEditor::mouseDown(event);
+}
+
+void AudioPluginAudioProcessorEditor::mouseMove(const juce::MouseEvent& event)
+{
+    // Check if mouse is over the title label
+    bool wasHovered = titleHovered;
+    titleHovered    = titleLabel.getBounds().contains(event.getPosition());
+
+    // Update cursor only (no color change)
+    if (titleHovered != wasHovered)
+    {
+        setMouseCursor(titleHovered ? juce::MouseCursor::PointingHandCursor : juce::MouseCursor::NormalCursor);
+    }
+}
+
+void AudioPluginAudioProcessorEditor::showDeveloperInfo()
+{
+    // Use JUCE's built-in showOkCancelBox for better reliability
+    juce::AlertWindow::showOkCancelBox(
+        juce::AlertWindow::InfoIcon,
+        "About the Developer",
+        "Plugin developed by Fernando Garcia\n\nThanks for using this plugin!\n\nWould you like to visit my GitHub?",
+        "Visit GitHub",
+        "Cool!",
+        nullptr,
+        juce::ModalCallbackFunction::create([](int result) {
+            if (result == 1) // "Visit GitHub" clicked
+            {
+                juce::URL("https://github.com/fergarciadlc").launchInDefaultBrowser();
+            }
+        }));
 }
