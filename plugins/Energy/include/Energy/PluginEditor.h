@@ -1,6 +1,15 @@
 #pragma once
 
+#include "BinaryData.h"
 #include "Energy/PluginProcessor.h"
+
+//==============================================================================
+// Custom Look and Feel for modern styling
+class ModernLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    ModernLookAndFeel();
+};
 
 //==============================================================================
 class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor, private juce::Timer
@@ -18,6 +27,24 @@ private:
     // access the processor object that created it.
     AudioPluginAudioProcessor& processorRef;
     void                       timerCallback() override;
+
+    // UI Components
+    juce::Label titleLabel;
+    juce::Label subtitleLabel;
+    juce::Label energyLinearValueLabel;
+    juce::Label energyDbValueLabel;
+    juce::Label energyLinearUnitLabel;
+    juce::Label energyDbUnitLabel;
+
+    // Custom styling
+    ModernLookAndFeel modernLF;
+
+    // Logos
+    juce::Image upfLogo;
+    juce::Image essentiaLogo;
+
+    // Additional label for "powered by" text
+    juce::Label poweredByLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessorEditor)
 };
