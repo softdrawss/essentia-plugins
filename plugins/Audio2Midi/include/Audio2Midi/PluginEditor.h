@@ -148,7 +148,7 @@ private:
     juce::Image upfLogo;
     juce::Image essentiaLogo;
     juce::Label poweredByLabel;
-    
+
     // Reload state tracking
     bool isReloading = false;
 
@@ -162,7 +162,7 @@ private:
 
     // Easter egg method
     void showDeveloperInfo();
-    
+
     // Hover state for title
     bool titleHovered = false;
 
