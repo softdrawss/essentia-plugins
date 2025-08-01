@@ -11,10 +11,7 @@ The repository ships ready‑to‑use plugins **and** templates so you can boots
 5. [Developer Guide](#developer-guide)  
 6. [Plugin Templates](#plugin-templates)  
 7. [Available Plugins](#available-plugins)  
-8. [Contributing](#contributing)  
-9. [License](#license)
-
----
+8. [Contributing](#contributing)
 
 ## Features
 - **Pre‑built analysis effects**: RMS, Energy, Audio2MIDI and more  
@@ -23,18 +20,13 @@ The repository ships ready‑to‑use plugins **and** templates so you can boots
 - **Self‑contained static Essentia** build—no runtime dependencies  
 - **Starter templates** to create new plugins quickly
 
----
 
 ## Requirements
-| Tool          | Version tested | Notes                                    |
-|---------------|---------------:|------------------------------------------|
-| CMake         | >= 3.22         | Core build system                        |
-| Python        | >= 3.8          | Required by Essentia’s waf script        |
-| JUCE          | 8.x            | Modules only – no licence needed locally |
-| Essentia      | `1f486843`        | Built as *static* library                |
-| GoogleTest    | *optional*     | Unit‑tests for plugins                   |
-
----
+- **CMake** >= 3.22
+- **Python** >= 3.8
+- **JUCE** 8.x
+- **Essentia** `1f486843` (built as *static* library)
+- **GoogleTest** *optional* (unit‑tests for plugins)
 
 ## Quick Start
 
@@ -43,8 +35,7 @@ The repository ships ready‑to‑use plugins **and** templates so you can boots
 git clone --recurse-submodules https://github.com/MTG/essentia-plugins.git
 cd essentia-plugins
 
-# 2. Build third‑party libraries (JUCE, GoogleTest, ...)
-#    (drives the external/ super‑build so you don’t have to call CMake yourself)
+# 2. Build dependencies (JUCE, Essentia, ...)
 bash scripts/build-external.sh      # build_external/
 
 # 3. Build Essentia (static) with waf
@@ -75,21 +66,13 @@ The `build-external.sh` script handles the building of all external dependencies
 
 ```bash
 # Create build directory at project root
-mkdir -p build_external
-cd build_external
-
-# Auto-detect number of CPU cores for faster parallel build
-if [[ "$(uname)" == "Darwin" ]]; then
-  NUM_CORES=$(sysctl -n hw.ncpu)  # macOS
-else
-  NUM_CORES=$(nproc)              # Linux
-fi
+mkdir -p build_external && cd build_external
 
 # Configure external CMake project 
 cmake ../external
 
 # Build all dependencies in parallel
-cmake --build . -- -j"$NUM_CORES"
+cmake --build . --parallel
 ```
 
 This process creates the `build_external/install` directory that contains:
@@ -97,7 +80,6 @@ This process creates the `build_external/install` directory that contains:
 - GoogleTest library for unit testing
 - Installation target for the Essentia library (populated in the next step)
 
----
 
 ## Building Essentia
 
@@ -115,8 +97,6 @@ python3 waf install
 > **Heads‑up:** when you run `cmake`, point the search path to your Essentia install:  
 > `-DCMAKE_PREFIX_PATH=$(pwd)/../../build_external/install` **or**  
 > `-DESSENTIA_ROOT=$(pwd)/../../build_external/install`.
-
----
 
 ## Developer Guide
 
@@ -159,6 +139,3 @@ See the [Developer Guide](DeveloperGuide.md) for detailed instructions on implem
 ## Contributing
 Pull requests and issue reports are welcome!  
 Please read the [CONTRIBUTING](CONTRIBUTING.md) guide before submitting code.
-
-## License
-TBD
