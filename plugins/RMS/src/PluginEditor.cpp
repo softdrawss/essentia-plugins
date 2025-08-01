@@ -249,14 +249,15 @@ void AudioPluginAudioProcessorEditor::showDeveloperInfo()
     juce::AlertWindow::showOkCancelBox(
         juce::AlertWindow::InfoIcon,
         "About the Developer",
-        "Plugin developed by Fernando Garcia\n\nThanks for using this plugin!\n\nWould you like to visit my GitHub?",
-        "Visit GitHub",
+        "Plugin developed by Fernando Garcia (github.com/fergarciadlc)\n\nThanks for "
+        "using this plugin!\n\nCheckout the source code and contribute:\n\n",
+        "MTG/essentia-plugins\n",
         "Cool!",
         nullptr,
         juce::ModalCallbackFunction::create([](int result) {
             if (result == 1) // "Visit GitHub" clicked
             {
-                juce::URL("https://github.com/fergarciadlc").launchInDefaultBrowser();
+                juce::URL("https://github.com/MTG/essentia-plugins").launchInDefaultBrowser();
             }
         }));
 }
