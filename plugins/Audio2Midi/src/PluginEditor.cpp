@@ -164,6 +164,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     titleLabel.setFont(juce::FontOptions(28.0f, juce::Font::bold));
     titleLabel.setColour(juce::Label::textColourId, juce::Colour(0xff4299e1));
     titleLabel.setJustificationType(juce::Justification::centred);
+    // Allow mouse clicks to pass through to the editor
+    titleLabel.setInterceptsMouseClicks(false, false);
     addAndMakeVisible(titleLabel);
 
     subtitleLabel.setText("Real-time Audio to MIDI Conversion", juce::dontSendNotification);
@@ -558,4 +560,51 @@ void AudioPluginAudioProcessorEditor::resized()
 
     // Position "powered by" text at the bottom
     poweredByLabel.setBounds(totalWidth - 120, totalHeight - 45, 80, 12);
+}
+
+//==============================================================================
+// Easter egg implementation
+//==============================================================================
+void AudioPluginAudioProcessorEditor::mouseDown(const juce::MouseEvent& event)
+{
+    // Check if the click is within the title label bounds
+    if (titleLabel.getBounds().contains(event.getPosition()))
+    {
+        showDeveloperInfo();
+    }
+
+    // Also call the base class to ensure proper handling
+    AudioProcessorEditor::mouseDown(event);
+}
+
+void AudioPluginAudioProcessorEditor::mouseMove(const juce::MouseEvent& event)
+{
+    // Check if mouse is over the title label
+    bool wasHovered = titleHovered;
+    titleHovered    = titleLabel.getBounds().contains(event.getPosition());
+
+    // Update cursor only (no color change)
+    if (titleHovered != wasHovered)
+    {
+        setMouseCursor(titleHovered ? juce::MouseCursor::PointingHandCursor : juce::MouseCursor::NormalCursor);
+    }
+}
+
+void AudioPluginAudioProcessorEditor::showDeveloperInfo()
+{
+    // Use JUCE's built-in showOkCancelBox for better reliability
+    juce::AlertWindow::showOkCancelBox(
+        juce::AlertWindow::InfoIcon,
+        "About the Developer",
+        "Plugin developed by Fernando Garcia (github.com/fergarciadlc)\n\nThanks for "
+        "using this plugin!\n\nCheckout the source code and contribute:\n\n",
+        "MTG/essentia-plugins\n",
+        "Cool!",
+        nullptr,
+        juce::ModalCallbackFunction::create([](int result) {
+            if (result == 1) // "Visit GitHub" clicked
+            {
+                juce::URL("https://github.com/MTG/essentia-plugins").launchInDefaultBrowser();
+            }
+        }));
 }

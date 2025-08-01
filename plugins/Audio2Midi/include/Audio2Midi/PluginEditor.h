@@ -76,6 +76,8 @@ public:
     //==============================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
+    void mouseDown(const juce::MouseEvent& event) override;
+    void mouseMove(const juce::MouseEvent& event) override;
 
 private:
     // This reference is provided as a quick way for your editor to
@@ -146,7 +148,7 @@ private:
     juce::Image upfLogo;
     juce::Image essentiaLogo;
     juce::Label poweredByLabel;
-    
+
     // Reload state tracking
     bool isReloading = false;
 
@@ -157,6 +159,12 @@ private:
                      const juce::String& labelText,
                      const juce::String& parameterID);
     void updateValueLabel(juce::Label& valueLabel, float value, const juce::String& unit, int decimals = 0);
+
+    // Easter egg method
+    void showDeveloperInfo();
+
+    // Hover state for title
+    bool titleHovered = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessorEditor)
 };

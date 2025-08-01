@@ -5,21 +5,54 @@ The repository ships ready‑to‑use plugins **and** templates so you can boots
 
 ## Table of Contents
 1. [Features](#features)  
-2. [Requirements](#requirements)  
-3. [Quick Start](#quick-start)  
-4. [Building Essentia](#building-essentia)  
-5. [Developer Guide](#developer-guide)  
-6. [Plugin Templates](#plugin-templates)  
-7. [Available Plugins](#available-plugins)  
+2. [Available Plugins](#available-plugins)  
+3. [Requirements](#requirements)  
+4. [Quick Start](#quick-start)  
+5. [Building Essentia](#building-essentia)  
+6. [Developer Guide](#developer-guide)  
+7. [Plugin Templates](#plugin-templates)  
 8. [Contributing](#contributing)
 
 ## Features
-- **Pre‑built analysis effects**: RMS, Energy, Audio2MIDI and more  
+- **Pre‑built analysis effects**: RMS, Energy, Audio2MIDI, Zero Crossing Rate and more  
 - **Cross‑platform** JUCE + Essentia stack (macOS, Windows 10+, Linux)  
 - **CMake *or* Projucer** build flows  
 - **Self‑contained static Essentia** build—no runtime dependencies  
 - **Starter templates** to create new plugins quickly
 
+## Available Plugins
+
+| Plugin name    | Description                                        | Build system |
+|----------------|----------------------------------------------------|--------------|
+| **RMS**        | Sample‑accurate root‑mean‑square meter             | CMake & Projucer |
+| **Energy**     | Frame‑based energy estimator                       | CMake        |
+| **Audio2Midi** | Monophonic pitch tracker that outputs MIDI events  | CMake & Projucer |
+| **ZeroCrossingRate** | Calculates zero crossing rate for audio analysis | CMake      |
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="plugins/assets/screenshots/energy.png" alt="Energy Plugin" width="300"/>
+      <br><b>Energy</b>
+    </td>
+    <td align="center">
+      <img src="plugins/assets/screenshots/rms.png" alt="RMS Plugin" width="300"/>
+      <br><b>RMS</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="plugins/assets/screenshots/audio2midi.png" alt="Audio2Midi Plugin" width="300"/>
+      <br><b>Audio2Midi</b>
+    </td>
+    <td align="center">
+      <img src="plugins/assets/screenshots/zcr.png" alt="Zero Crossing Rate Plugin" width="300"/>
+      <br><b>Zero Crossing Rate</b>
+    </td>
+  </tr>
+</table>
+
+---
 
 ## Requirements
 - **CMake** >= 3.22
@@ -122,17 +155,6 @@ This guide is essential for developers wanting to create their own Essentia-powe
 Copy one of the folders, rename it, then adapt `CMakeLists.txt` (or the Projucer settings) to your new product name.
 
 See the [Developer Guide](DeveloperGuide.md) for detailed instructions on implementing Essentia algorithms in your plugins.
-
----
-
-## Available Plugins
-
-| Plugin name    | Description                                        | Build system |
-|----------------|----------------------------------------------------|--------------|
-| **RMS**        | Sample‑accurate root‑mean‑square meter             | CMake        |
-| **Energy**     | Frame‑based energy estimator                       | CMake        |
-| **RMS_projucer** | Same as **RMS**, built with Projucer             | Projucer     |
-| **Audio2Midi** | Monophonic pitch tracker that outputs MIDI events  | Projucer     |
 
 ---
 
