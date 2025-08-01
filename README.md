@@ -14,7 +14,7 @@ The repository ships ready‑to‑use plugins **and** templates so you can boots
 8. [Contributing](#contributing)
 
 ## Features
-- **Pre‑built analysis effects**: RMS, Energy, Audio2MIDI and more  
+- **Pre‑built analysis effects**: RMS, Energy, Audio2MIDI, Zero Crossing Rate and more  
 - **Cross‑platform** JUCE + Essentia stack (macOS, Windows 10+, Linux)  
 - **CMake *or* Projucer** build flows  
 - **Self‑contained static Essentia** build—no runtime dependencies  
