@@ -133,6 +133,32 @@ See the [Developer Guide](DeveloperGuide.md) for detailed instructions on implem
 | **Energy**     | Frame‑based energy estimator                       | CMake        |
 | **RMS_projucer** | Same as **RMS**, built with Projucer             | Projucer     |
 | **Audio2Midi** | Monophonic pitch tracker that outputs MIDI events  | Projucer     |
+| **ZeroCrossingRate** | Calculates zero crossing rate for audio analysis | CMake      |
+
+### Plugin Screenshots
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="plugins/assets/screenshots/energy.png" alt="Energy Plugin" width="300"/>
+      <br><b>Energy</b>
+    </td>
+    <td align="center">
+      <img src="plugins/assets/screenshots/rms.png" alt="RMS Plugin" width="300"/>
+      <br><b>RMS</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="plugins/assets/screenshots/audio2midi.png" alt="Audio2Midi Plugin" width="300"/>
+      <br><b>Audio2Midi</b>
+    </td>
+    <td align="center">
+      <img src="plugins/assets/screenshots/zcr.png" alt="Zero Crossing Rate Plugin" width="300"/>
+      <br><b>Zero Crossing Rate</b>
+    </td>
+  </tr>
+</table>
 
 ---
 
