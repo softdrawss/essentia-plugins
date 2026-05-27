@@ -55,6 +55,7 @@ echo "Configuring Essentia build…"
 run python3 waf configure \
   --build-static \
   --static-dependencies \
+  --fft=KISS \
   --lightweight= \
   --out="$BUILD_PATH" \
   --prefix="$INSTALL_PATH"
