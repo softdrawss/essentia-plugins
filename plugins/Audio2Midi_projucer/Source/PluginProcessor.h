@@ -1,96 +1,73 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #pragma once
 
-#include <JuceHeader.h>
-#include <essentia.h>
-#include <stdio.h>
-#include <vector>
+#include <juce_audio_processors/juce_audio_processors.h>
 #include <algorithmfactory.h>
 #include <essentiamath.h>
-#include <pool.h>
-
-using namespace essentia;
-using namespace essentia::standard;
-using namespace std;
 
 //==============================================================================
-/**
-*/
-class RTAudio2MidiAudioProcessor  : public juce::AudioProcessor
-                            #if JucePlugin_Enable_ARA
-                             , public juce::AudioProcessorARAExtension
-                            #endif
+class AudioPluginAudioProcessor final : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    RTAudio2MidiAudioProcessor();
-    ~RTAudio2MidiAudioProcessor() override;
+    AudioPluginAudioProcessor();
+    ~AudioPluginAudioProcessor() override;
 
     //==============================================================================
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
-   #ifndef JucePlugin_PreferredChannelConfigurations
-    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-   #endif
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
-    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    using AudioProcessor::processBlock;
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
-    bool hasEditor() const override;
+    bool                        hasEditor() const override;
 
     //==============================================================================
     const juce::String getName() const override;
 
-    bool acceptsMidi() const override;
-    bool producesMidi() const override;
-    bool isMidiEffect() const override;
+    bool   acceptsMidi() const override;
+    bool   producesMidi() const override;
+    bool   isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
     //==============================================================================
-    int getNumPrograms() override;
-    int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const juce::String getProgramName (int index) override;
-    void changeProgramName (int index, const juce::String& newName) override;
+    int                getNumPrograms() override;
+    int                getCurrentProgram() override;
+    void               setCurrentProgram(int index) override;
+    const juce::String getProgramName(int index) override;
+    void               changeProgramName(int index, const juce::String& newName) override;
 
     //==============================================================================
-    void getStateInformation (juce::MemoryBlock& destData) override;
-    void setStateInformation (const void* data, int sizeInBytes) override;
-    
-    // custom functions
-    void initialize_essentia_algorithms(int sampleRate, int frameSize);
-    void configure_essentia_algorithms(int sampleRate, int frameSize);
-    void connectBufferToAlgorithms();
-    void load_audio_buffer(juce::AudioBuffer<float> buffer);
-    
-    void compute_algorithms();
-    vector<float> get_features();
-    void cleanupEssentia();
+    void getStateInformation(juce::MemoryBlock& destData) override;
+    void setStateInformation(const void* data, int sizeInBytes) override;
+
+    juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
 
 private:
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RTAudio2MidiAudioProcessor)
-    
-    Algorithm* audio2Midi {nullptr};
-    //Algorithm* energy;
-    
+    juce::AudioProcessorValueTreeState                  apvts;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameters() const;
+    void                                                updateParameters();
+    void                                                reloadAlgorithm();
+    bool createAudio2MidiAlgorithm(int samplesPerBlock, double sampleRate, bool useCurrentParameters = false);
+
+    essentia::standard::Algorithm* audio2midi{nullptr};
+    // std::vector<essentia::Real>    inBuffer;
+    // essentia::Real                 energyValue{0.f};
+
     // audio2midi inputs and outputs
-    vector<Real> inputFrame;
-    Real rmsValue, pitch, rms;
-    vector<string> messageType;
-    vector<Real> midiNoteNumber;
-    vector<Real> timeCompensation;
-    
+    std::vector<essentia::Real> inputFrame;
+    essentia::Real              rmsValue, pitch, rms;
+    std::vector<std::string>    messageType;
+    std::vector<essentia::Real> midiNoteNumber;
+    std::vector<essentia::Real> timeCompensation;
+
     // timestamp
     juce::AudioPlayHead::CurrentPositionInfo lastPosInfo;
-    double currentTime, msPerSample, sampleRate;
+
+    double currentTime, msPerSample, mSampleRate;
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };

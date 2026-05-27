@@ -6,14 +6,17 @@
               pluginCharacteristicsValue="pluginProducesMidiOut">
   <MAINGROUP id="TyTGVI" name="RTAudio2Midi">
     <GROUP id="{A4EBD78C-6495-CFCE-0940-6EFB467DA48C}" name="Source">
-      <FILE id="WMNMHh" name="PluginProcessor.cpp" compile="1" resource="0"
-            file="Source/PluginProcessor.cpp"/>
-      <FILE id="lvYwa3" name="PluginProcessor.h" compile="0" resource="0"
-            file="Source/PluginProcessor.h"/>
-      <FILE id="AIQCNQ" name="PluginEditor.cpp" compile="1" resource="0"
+      <FILE id="Bxbmj1" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
-      <FILE id="ssB8G2" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="uvFlGD" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="SgpIYN" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="ci8bZo" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
     </GROUP>
+    <FILE id="PbanVv" name="essentia_logo.png" compile="0" resource="1"
+          file="../assets/essentia_logo.png"/>
+    <FILE id="aYvrs2" name="upflogo.png" compile="0" resource="1" file="../assets/upflogo.png"/>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
