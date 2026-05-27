@@ -64,8 +64,11 @@ public:
     void loadEssentiaBuffer(std::vector<float> buffer);
     void computeEssentiaAlgorithms();
     void cleanupEssentia();
-    
-    float getRMS() const { return (float)essentia::amp2db(rmsValue); }
+      
+    // --- quick access to the most recent RMS in both units ----------
+    float getRMSLinear() const { return rmsValue; }
+
+    float getRMSdB() const { return static_cast<float>(essentia::amp2db(rmsValue)); }
 
 private:
     essentia::standard::Algorithm* rms;
