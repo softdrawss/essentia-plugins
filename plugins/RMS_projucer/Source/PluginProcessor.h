@@ -16,12 +16,12 @@
 //==============================================================================
 /**
 */
-class RMSAudioProcessor  : public juce::AudioProcessor
+class EssentiaPluginAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    RMSAudioProcessor();
-    ~RMSAudioProcessor() override;
+    EssentiaPluginAudioProcessor();
+    ~EssentiaPluginAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -59,7 +59,7 @@ public:
     // Essentia custom functions
     void initializeEssentiaAlgorithms(int sampleRate, int frameSize);
     void connectBufferToAlgorithms();
-    std::vector<float> applyZeroPadding(juce::AudioBuffer<float>& buffer, int maxSampleSize);
+    void applyZeroPadding(std::vector<essentia::Real>& buffer, int maxSampleSize);
     
     void loadEssentiaBuffer(std::vector<float> buffer);
     void computeEssentiaAlgorithms();
@@ -77,5 +77,5 @@ private:
     
     int maxSampleSize {1024};
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RMSAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EssentiaPluginAudioProcessor)
 };
