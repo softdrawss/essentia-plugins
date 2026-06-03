@@ -13,11 +13,11 @@ public:
 };
 
 //==============================================================================
-class RMSAudioProcessorEditor final : public juce::AudioProcessorEditor, private juce::Timer
+class EssentiaPluginAudioProcessorEditor final : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
-    explicit RMSAudioProcessorEditor(RMSAudioProcessor&);
-    ~RMSAudioProcessorEditor() override;
+    explicit EssentiaPluginAudioProcessorEditor(EssentiaPluginAudioProcessor&);
+    ~EssentiaPluginAudioProcessorEditor() override;
 
     //==============================================================================
     void paint(juce::Graphics&) override;
@@ -28,7 +28,7 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    RMSAudioProcessor& processorRef;
+    EssentiaPluginAudioProcessor& processorRef;
     void                       timerCallback() override;
 
     // UI Components
@@ -55,5 +55,5 @@ private:
     // Hover state for title
     bool titleHovered = false;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RMSAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EssentiaPluginAudioProcessorEditor)
 };

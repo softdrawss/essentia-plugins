@@ -12,7 +12,7 @@ ModernLookAndFeel::ModernLookAndFeel()
 //==============================================================================
 // AudioPluginAudioProcessorEditor Implementation
 //==============================================================================
-RMSAudioProcessorEditor::RMSAudioProcessorEditor(RMSAudioProcessor& p)
+EssentiaPluginAudioProcessorEditor::EssentiaPluginAudioProcessorEditor(EssentiaPluginAudioProcessor& p)
     : AudioProcessorEditor(&p)
     , processorRef(p)
 {
@@ -81,25 +81,25 @@ RMSAudioProcessorEditor::RMSAudioProcessorEditor(RMSAudioProcessor& p)
     startTimerHz(30);
 }
 
-RMSAudioProcessorEditor::~RMSAudioProcessorEditor()
+EssentiaPluginAudioProcessorEditor::~EssentiaPluginAudioProcessorEditor()
 {
     setLookAndFeel(nullptr);
 }
 
-void RMSAudioProcessorEditor::timerCallback()
+void EssentiaPluginAudioProcessorEditor::timerCallback()
 {
     // Update RMS value displays
-    const float rmsLin = processorRef.getRMSLinear();
+    const float rmsLinear = processorRef.getRMSLinear();
     const float rmsdB  = processorRef.getRMSdB();
 
     // Update labels
-    rmsLinearValueLabel.setText(juce::String(rmsLin, 3), juce::dontSendNotification);
+    rmsLinearValueLabel.setText(juce::String(rmsLinear, 3), juce::dontSendNotification);
     rmsDbValueLabel.setText(juce::String(rmsdB, 1) + " dB", juce::dontSendNotification);
 
     repaint();
 }
 
-void RMSAudioProcessorEditor::paint(juce::Graphics& g)
+void EssentiaPluginAudioProcessorEditor::paint(juce::Graphics& g)
 {
     // Solid background
     g.setColour(juce::Colour(0xff1a1f2e));
@@ -182,7 +182,7 @@ void RMSAudioProcessorEditor::paint(juce::Graphics& g)
     }
 }
 
-void RMSAudioProcessorEditor::resized()
+void EssentiaPluginAudioProcessorEditor::resized()
 {
     // Fixed layout values for cleaner, more focused layout
     const float titleY         = 0.08f;
@@ -218,7 +218,7 @@ void RMSAudioProcessorEditor::resized()
 //==============================================================================
 // Easter egg implementation
 //==============================================================================
-void RMSAudioProcessorEditor::mouseDown(const juce::MouseEvent& event)
+void EssentiaPluginAudioProcessorEditor::mouseDown(const juce::MouseEvent& event)
 {
     // Check if the click is within the title label bounds
     if (titleLabel.getBounds().contains(event.getPosition()))
@@ -230,7 +230,7 @@ void RMSAudioProcessorEditor::mouseDown(const juce::MouseEvent& event)
     AudioProcessorEditor::mouseDown(event);
 }
 
-void RMSAudioProcessorEditor::mouseMove(const juce::MouseEvent& event)
+void EssentiaPluginAudioProcessorEditor::mouseMove(const juce::MouseEvent& event)
 {
     // Check if mouse is over the title label
     bool wasHovered = titleHovered;
@@ -243,16 +243,15 @@ void RMSAudioProcessorEditor::mouseMove(const juce::MouseEvent& event)
     }
 }
 
-void RMSAudioProcessorEditor::showDeveloperInfo()
+void EssentiaPluginAudioProcessorEditor::showDeveloperInfo()
 {
     // Use JUCE's built-in showOkCancelBox for better reliability
     juce::AlertWindow::showOkCancelBox(
         juce::AlertWindow::InfoIcon,
-        "About the Developer",
-        "Plugin developed by Fernando Garcia (github.com/fergarciadlc)\n\nThanks for "
-        "using this plugin!\n\nCheckout the source code and contribute:\n\n",
+        "About the plugin",
+        "Thanks for using this plugin!\n\nCheckout the source code and contribute:\n\n",
         "MTG/essentia-plugins\n",
-        "Cool!",
+        "",
         nullptr,
         juce::ModalCallbackFunction::create([](int result) {
             if (result == 1) // "Visit GitHub" clicked

@@ -9,9 +9,14 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+using essentia::standard::AlgorithmFactory;
+using essentia::Real;
+
+
 //==============================================================================
-RMSAudioProcessor::RMSAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
+// clang-format off
+
+EssentiaPluginAudioProcessor::EssentiaPluginAudioProcessor()
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
@@ -20,22 +25,19 @@ RMSAudioProcessor::RMSAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        )
-#endif
 {
 }
+// clang-format on
 
-RMSAudioProcessor::~RMSAudioProcessor()
-{
-    cleanupEssentia();
-}
+EssentiaPluginAudioProcessor::~EssentiaPluginAudioProcessor() {}
 
 //==============================================================================
-const juce::String RMSAudioProcessor::getName() const
+const juce::String EssentiaPluginAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool RMSAudioProcessor::acceptsMidi() const
+bool EssentiaPluginAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -44,7 +46,7 @@ bool RMSAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool RMSAudioProcessor::producesMidi() const
+bool EssentiaPluginAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -53,7 +55,7 @@ bool RMSAudioProcessor::producesMidi() const
    #endif
 }
 
-bool RMSAudioProcessor::isMidiEffect() const
+bool EssentiaPluginAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -62,115 +64,84 @@ bool RMSAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double RMSAudioProcessor::getTailLengthSeconds() const
+double EssentiaPluginAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int RMSAudioProcessor::getNumPrograms()
+int EssentiaPluginAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int RMSAudioProcessor::getCurrentProgram()
+int EssentiaPluginAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void RMSAudioProcessor::setCurrentProgram (int index)
+void EssentiaPluginAudioProcessor::setCurrentProgram (int index)
 {
+    juce::ignoreUnused(index);
 }
 
-const juce::String RMSAudioProcessor::getProgramName (int index)
+const juce::String EssentiaPluginAudioProcessor::getProgramName (int index)
 {
+    juce::ignoreUnused(index);
     return {};
 }
 
-void RMSAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void EssentiaPluginAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
+    juce::ignoreUnused(index, newName);
 }
 
-void RMSAudioProcessor::initializeEssentiaAlgorithms(int sampleRate, int frameSize)
+void EssentiaPluginAudioProcessor::applyZeroPadding(std::vector<Real>& buffer, int maxSampleSize)
 {
-    essentia::init();
+    const int currentSize = static_cast<int>(buffer.size());
     
-    essentia::standard::AlgorithmFactory& factory = essentia::standard::AlgorithmFactory::instance();
-    
-    // check the parameters for each algo
-    rms = factory.create("RMS");
-
-    // connect algorithm I/Os
-    rms->input("array").set(essentiaBuffer);
-    rms->output("rms").set(rmsValue);
-}
-
-void RMSAudioProcessor::connectBufferToAlgorithms()
-{
-    rms->input("frame").set(essentiaBuffer);
-    rms->output("frame").set(rmsValue);
-}
-
-std::vector<float> RMSAudioProcessor::applyZeroPadding(juce::AudioBuffer<float>& buffer, int maxSampleSize)
-{
-    
-    float* start = buffer.getWritePointer(0); // get the pointer to the first sample of the first channel
-    int size = buffer.getNumSamples();
-    if (size < maxSampleSize){
-        // get an array of padded zeros
-        int padded_zeros_size =  maxSampleSize - size;
-        std::vector<float> audio_buffer_vec(start, start + size); // this will copy the data as a vector
-        // append array of padded zeros to audio_buffer
-        for(int i=0; i < padded_zeros_size; i++){
-            audio_buffer_vec.push_back(0.0f);
-        }
-        return audio_buffer_vec;
-
+    if (currentSize < maxSampleSize)
+    {
+        // Reserve and fill with zeros - much faster than push_back loop
+        buffer.reserve(maxSampleSize);
+        buffer.resize(maxSampleSize, 0.0f);  // Single operation!
     }
-    else{
-        std::vector<float> audio_buffer_vec(start, start + maxSampleSize);
-        return audio_buffer_vec;
+    else if (currentSize > maxSampleSize)
+    {
+        // Trim to desired size
+        buffer.resize(maxSampleSize);
     }
-
-}
-
-void RMSAudioProcessor::loadEssentiaBuffer(std::vector<float> buffer)
-{
-    std::vector<essentia::Real> audio_buffer;
-    for(auto sample : buffer){
-        audio_buffer.push_back(sample);
-    }
-    essentiaBuffer = audio_buffer;
-};
-
-void RMSAudioProcessor::computeEssentiaAlgorithms()
-{
-    rms->compute();
-}
-
-void RMSAudioProcessor::cleanupEssentia() {
-    essentiaBuffer.clear();
-    essentia::shutdown();
-    //delete rms;
-    //delete energy;
+    // If equal, do nothing
 }
 
 //==============================================================================
-void RMSAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void EssentiaPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
-    initializeEssentiaAlgorithms((int)sampleRate, samplesPerBlock);
+    juce::ignoreUnused(sampleRate, samplesPerBlock);
+    
+    essentia::init();
+    
+    rms = AlgorithmFactory::create("RMS");
+
+    // connect I/O algorithm
+    rms->input("array").set(essentiaBuffer);
+    rms->output("rms").set(rmsValue);
+  
+    // prime once with a dummy frame to avoid allocations in the audio thread
+    essentiaBuffer.assign(16, 0.f);
+    rms->compute();
 }
 
-void RMSAudioProcessor::releaseResources()
+void EssentiaPluginAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    delete rms;
+    rms = nullptr;
+    essentiaBuffer.clear();
+    essentia::shutdown();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool RMSAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool EssentiaPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -195,41 +166,47 @@ bool RMSAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) cons
 }
 #endif
 
-void RMSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void EssentiaPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    std::vector<float> audioBuffer = applyZeroPadding(buffer, maxSampleSize);
-    loadEssentiaBuffer(audioBuffer);
-    computeEssentiaAlgorithms();
+    juce::ignoreUnused(midiMessages);
+
+    // process single-channel for now
+    const float* in = buffer.getReadPointer(0);
+    essentiaBuffer.assign(in, in + buffer.getNumSamples());
+
+    rms->compute();
 }
 
 //==============================================================================
-bool RMSAudioProcessor::hasEditor() const
+bool EssentiaPluginAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* RMSAudioProcessor::createEditor()
+juce::AudioProcessorEditor* EssentiaPluginAudioProcessor::createEditor()
 {
-    return new RMSAudioProcessorEditor (*this);
+    return new EssentiaPluginAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void RMSAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void EssentiaPluginAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    juce::ignoreUnused(destData);
 }
 
-void RMSAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void EssentiaPluginAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    juce::ignoreUnused(data, sizeInBytes);
 }
 
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new RMSAudioProcessor();
+    return new EssentiaPluginAudioProcessor();
 }
