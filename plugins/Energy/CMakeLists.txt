@@ -47,6 +47,7 @@ target_link_libraries(${PROJECT_NAME}
         EnergyBinaryData
         essentia
         Eigen3::Eigen
+        curl
         juce::juce_audio_processors
         juce::juce_audio_utils
         juce::juce_dsp

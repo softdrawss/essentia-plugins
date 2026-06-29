@@ -21,7 +21,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(
         -Wall -Wextra -Wpedantic
         -Werror
-        -Wreorder -Wdeprecated-declarations
+        $<$<COMPILE_LANGUAGE:CXX>:-Wreorder>
+        -Wdeprecated-declarations
         -Wunused -Wswitch -Wreturn-type
     )
 elseif(MSVC)
